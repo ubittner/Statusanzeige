@@ -58,13 +58,14 @@ Das Modul Statusanzeige reagiert auf verschiedene Auslöser.
 Das Modul Statusanzeige kann über eine externe Aktion geschaltet werden.  
 Nachfolgendes Beispiel schaltet die Statusanzeige an.
 
-> SA_ToggleSignalling(12345, true, false, true);  
-
+```php
+SA_ToggleSignalling(12345, true, false, true);
+```
 ### 6. PHP-Befehlsreferenz
 
 #### 6.1 Signalisierung auslösen
 
-```
+```text
 boolean SA_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE, bool CHECK_VARIABLE_STATE);
 ```
 
@@ -86,8 +87,9 @@ Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE
 |                        | false      | Aus            | Prüft keinen Status der Zielvariable |
 |                        | true       | An             | Prüft den Status der Zielvariable    |
 
-Beispiel:  
-
-> SA_ToggleSignalling(12345, false, true, false);
+**Beispiel**:
+```php
+SA_ToggleSignalling(12345, false, true, false);
+```
 
 ---

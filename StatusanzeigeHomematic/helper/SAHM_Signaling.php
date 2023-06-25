@@ -138,7 +138,7 @@ trait SAHM_Signaling
         }
         $result = false;
         $id = $this->ReadPropertyInteger('SignallingDeviceInstance');
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             $result = true;
             $actualValue = $this->GetValue('Signalling');
             $this->SetValue('Signalling', $State);
@@ -154,7 +154,7 @@ trait SAHM_Signaling
             //HM-LC-Sw4-WM
             if ($this->ReadPropertyInteger('SignallingDeviceType') == 1) {
                 $commandControl = $this->ReadPropertyInteger('CommandControl');
-                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) { //0 = main category, 1 = none
+                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                     $commands = [];
                     $commands[] = '@HM_WriteValueBoolean(' . $id . ", 'STATE', " . $value . ');';
                     $this->SendDebug(__FUNCTION__, 'Befehl: ' . json_encode(json_encode($commands)), 0);
@@ -222,7 +222,7 @@ trait SAHM_Signaling
         }
         $result = false;
         $id = $this->ReadPropertyInteger('InvertedSignallingDeviceInstance');
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             if ($CheckDeviceState) {
                 $deviceState = $this->ReadPropertyInteger('InvertedSignallingDeviceState');
                 if ($deviceState > 1 && @IPS_ObjectExists($deviceState)) {
@@ -236,7 +236,7 @@ trait SAHM_Signaling
             //HM-LC-Sw4-WM
             if ($this->ReadPropertyInteger('InvertedSignallingDeviceType') == 1) {
                 $commandControl = $this->ReadPropertyInteger('CommandControl');
-                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) { //0 = main category, 1 = none
+                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                     $commands = [];
                     $commands[] = '@HM_WriteValueBoolean(' . $id . ", 'STATE', " . $value . ');';
                     $this->SendDebug(__FUNCTION__, 'Befehl: ' . json_encode(json_encode($commands)), 0);
