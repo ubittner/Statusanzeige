@@ -2,7 +2,7 @@
     "id": "{17C9B00D-3C66-2B99-7F83-604DA32C91E6}",
     "name": "StatusanzeigeHomematic",
     "type": 3,
-    "vendor": "UB",
+    "vendor": "Ulrich Bittner",
     "aliases": [
         "Statusanzeige Homematic"
     ],

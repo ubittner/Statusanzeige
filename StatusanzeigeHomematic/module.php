@@ -25,6 +25,8 @@ class StatusanzeigeHomematic extends IPSModule
     use SAHM_TriggerCondition;
 
     //Constants
+    private const LIBRARY_GUID = '{3E8B8394-FC34-8C9A-6324-A03FB7E64B29}';
+    private const MODULE_GUID = '{17C9B00D-3C66-2B99-7F83-604DA32C91E6}';
     private const MODULE_NAME = 'Statusanzeige Homematic';
     private const MODULE_PREFIX = 'SAHM';
     private const MODULE_VERSION = '7.0-1, 08.09.2022';
@@ -115,7 +117,7 @@ class StatusanzeigeHomematic extends IPSModule
         $names[] = ['propertyName' => 'CommandControl', 'useUpdate' => false];
         foreach ($names as $name) {
             $id = $this->ReadPropertyInteger($name['propertyName']);
-            if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+            if ($id > 1 && @IPS_ObjectExists($id)) {
                 $this->RegisterReference($id);
                 if ($name['useUpdate']) {
                     $this->RegisterMessage($id, VM_UPDATE);
@@ -134,7 +136,7 @@ class StatusanzeigeHomematic extends IPSModule
                 if (array_key_exists(0, $primaryCondition)) {
                     if (array_key_exists(0, $primaryCondition[0]['rules']['variable'])) {
                         $id = $primaryCondition[0]['rules']['variable'][0]['variableID'];
-                        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+                        if ($id > 1 && @IPS_ObjectExists($id)) {
                             $this->RegisterReference($id);
                             $this->RegisterMessage($id, VM_UPDATE);
                         }
@@ -150,7 +152,7 @@ class StatusanzeigeHomematic extends IPSModule
                         foreach ($rules as $rule) {
                             if (array_key_exists('variableID', $rule)) {
                                 $id = $rule['variableID'];
-                                if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+                                if ($id > 1 && @IPS_ObjectExists($id)) {
                                     $this->RegisterReference($id);
                                 }
                             }
@@ -208,10 +210,18 @@ class StatusanzeigeHomematic extends IPSModule
         $id = IPS_CreateInstance(self::ABLAUFSTEUERUNG_MODULE_GUID);
         if (is_int($id)) {
             IPS_SetName($id, 'Ablaufsteuerung');
-            echo 'Instanz mit der ID ' . $id . ' wurde erfolgreich erstellt!';
+            $infoText = 'Instanz mit der ID ' . $id . ' wurde erfolgreich erstellt!';
         } else {
-            echo 'Instanz konnte nicht erstellt werden!';
+            $infoText = 'Instanz konnte nicht erstellt werden!';
         }
+        $this->UpdateFormField('InfoMessage', 'visible', true);
+        $this->UpdateFormField('InfoMessageLabel', 'caption', $infoText);
+    }
+
+    public function UIShowMessage(string $Message): void
+    {
+        $this->UpdateFormField('InfoMessage', 'visible', true);
+        $this->UpdateFormField('InfoMessageLabel', 'caption', $Message);
     }
 
     #################### Request Action

@@ -102,7 +102,7 @@ trait SAHMIP_Signaling
             $lightUnitColor = 'LowerLightUnitColor';
         }
         $id = $this->ReadPropertyInteger($deviceColorName);
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
             $color = GetValueInteger($id);
             $this->SendDebug(__FUNCTION__, 'Farbe: ' . $color, 0);
@@ -130,7 +130,7 @@ trait SAHMIP_Signaling
             $lightUnitBrightness = 'LowerLightUnitBrightness';
         }
         $id = $this->ReadPropertyInteger($deviceBrightnessName);
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
             $brightness = GetValueFloat($id) * 100;
             $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $brightness, 0);
@@ -204,7 +204,7 @@ trait SAHMIP_Signaling
                 return true;
             }
             $id = $this->ReadPropertyInteger('UpperLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+            if ($id > 1 && @IPS_ObjectExists($id)) {
                 switch ($this->ReadPropertyInteger('UpperLightUnitDeviceType')) {
                     case 1: //HmIP-BSL Channel 8
                     case 2: //HmIP-MP3P Channel 6
@@ -246,7 +246,7 @@ trait SAHMIP_Signaling
             }
             $this->SetValue('LowerLightUnitColor', $Color);
             $id = $this->ReadPropertyInteger('LowerLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+            if ($id > 1 && @IPS_ObjectExists($id)) {
                 switch ($this->ReadPropertyInteger('LowerLightUnitDeviceType')) {
                     case 1: //HmIP-BSL Channel 12
                         $commandControl = $this->ReadPropertyInteger('CommandControl');
@@ -308,7 +308,7 @@ trait SAHMIP_Signaling
             }
             $deviceBrightness = $this->GetValue('UpperLightUnitBrightness') / 100;
             $id = $this->ReadPropertyInteger('UpperLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+            if ($id > 1 && @IPS_ObjectExists($id)) {
                 switch ($this->ReadPropertyInteger('UpperLightUnitDeviceType')) {
                     case 1: //HmIP-BSL Channel 8
                     case 2: //HmIP-MP3P Channel 6
@@ -351,7 +351,7 @@ trait SAHMIP_Signaling
             }
             $deviceBrightness = $this->GetValue('LowerLightUnitBrightness') / 100;
             $id = $this->ReadPropertyInteger('LowerLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+            if ($id > 1 && @IPS_ObjectExists($id)) {
                 switch ($this->ReadPropertyInteger('LowerLightUnitDeviceType')) {
                     case 1: //HmIP-BSL Channel 12
                         $commandControl = $this->ReadPropertyInteger('CommandControl');

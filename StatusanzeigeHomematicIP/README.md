@@ -72,13 +72,15 @@ Die zutreffende Bedingung mit der höchsten Priorität wird dann ausgeführt.
 Das Modul Statusanzeige kann über eine externe Aktion geschaltet werden.  
 Nachfolgendes Beispiel setzt die obere Leuchteinheit auf den Farbwert Rot bei einer Helligkeit von 100 %.
 
-> SAHMIP_SetDeviceSignaling(12345, 0, 4, 100);  
+```php
+SAHMIP_SetDeviceSignaling(12345, 0, 4, 100); 
+``` 
 
 ### 6. PHP-Befehlsreferenz
 
 #### 6.1 Signalisierung auslösen
 
-```
+```text
 boolean SAHMIP_SetDeviceSignaling(integer INSTANCE_ID, integer LIGHT_UNIT, integer COLOR, integer BRIGHTNESS);
 ```
 
@@ -105,9 +107,10 @@ Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE
 | `BRIGHTNESS`  |           | Helligkeit       |                      |
 |               | 0 bis 100 | 0 bis 100%       |                      |
 
-Beispiel:  
-
-> SAHMIP_SetDeviceSignaling(12345, 1, 2, 50);
+**Beispiel**:
+```php  
+SAHMIP_SetDeviceSignaling(12345, 1, 2, 50);
+```
 
 ---
 
@@ -138,8 +141,10 @@ Konnte der jeweilige Befehl erfolgreich ausgeführt werden, liefert er als Ergeb
 Die Werte für **COLOR** und **BRIGHTNESS** entnehmen Sie bitte der entsprechenden Tabelle.
 
 
-Beispiel:
-> HM_WriteValueInteger(98765, 'COLOR', 4);  
-> HM_WriteValueFloat(98765, 'LEVEL', 1);
+**Beispiel**:
+```php
+HM_WriteValueInteger(98765, 'COLOR', 4);  
+HM_WriteValueFloat(98765, 'LEVEL', 1);
+```
 
 ---

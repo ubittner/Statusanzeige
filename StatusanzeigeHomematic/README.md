@@ -62,13 +62,15 @@ Das Modul Statusanzeige reagiert auf verschiedene Auslöser.
 Das Modul Statusanzeige kann über eine externe Aktion geschaltet werden.  
 Nachfolgendes Beispiel schaltet die Statusanzeige an.
 
-> SAHM_ToggleSignalling(12345, true, false, true);  
 
+```php
+SAHM_ToggleSignalling(12345, true, false, true);
+```
 ### 6. PHP-Befehlsreferenz
 
 #### 6.1 Signalisierung auslösen
 
-```
+```text
 boolean SAHM_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE, bool CHECK_DEVICE_STATE);
 ```
 
@@ -90,9 +92,10 @@ Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE
 |                        | false      | Aus            | Prüft keinen Gerätestatus        |
 |                        | true       | An             | Prüft den Gerätestatus           |
 
-Beispiel:  
-
-> SAHM_ToggleSignalling(12345, false, true, false);
+**Beispiel**:
+```php
+SAHM_ToggleSignalling(12345, false, true, false);
+```
 
 ---
 
@@ -100,7 +103,7 @@ Beispiel:
 
 Die Ansteuerung kann alternativ auch direkt an das Gerät erfolgen.
 
-```
+```text
 boolean HM_WriteValueBoolean(integer INSTANCE_ID, string STATE, boolean VALUE); 
 ```
 Konnte der jeweilige Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE**, andernfalls **FALSE**.
@@ -111,6 +114,9 @@ Konnte der jeweilige Befehl erfolgreich ausgeführt werden, liefert er als Ergeb
 | `STATE`          | STATE                 |
 | `VALUE`          | Wert                  |
 
-Beispiel:
-> HM_WriteValueBoolean(98765, 'STATE', false);
+**Beispiel**:
+```php
+HM_WriteValueBoolean(98765, 'STATE', false);
+```
+
 ---

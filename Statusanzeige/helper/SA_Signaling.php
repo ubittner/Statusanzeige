@@ -138,7 +138,7 @@ trait SA_Signaling
         }
         $result = false;
         $id = $this->ReadPropertyInteger('SignallingVariable');
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             $actualValue = $this->GetValue('Signalling');
             $this->SetValue('Signalling', $State);
             if ($CheckVariableState) {
@@ -151,7 +151,7 @@ trait SA_Signaling
                 }
             }
             $commandControl = $this->ReadPropertyInteger('CommandControl');
-            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) { //0 = main category, 1 = none
+            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                 $commands = [];
                 $commands[] = '@RequestAction(' . $id . ', ' . $value . ');';
                 $this->SendDebug(__FUNCTION__, 'Befehl: ' . json_encode(json_encode($commands)), 0);
@@ -210,7 +210,7 @@ trait SA_Signaling
         }
         $result = false;
         $id = $this->ReadPropertyInteger('InvertedSignallingVariable');
-        if ($id > 1 && @IPS_ObjectExists($id)) { //0 = main category, 1 = none
+        if ($id > 1 && @IPS_ObjectExists($id)) {
             if ($CheckVariableState) {
                 $variable = $this->ReadPropertyInteger('InvertedSignallingVariable');
                 if ($variable > 1 && @IPS_ObjectExists($variable)) {
@@ -221,7 +221,7 @@ trait SA_Signaling
                 }
             }
             $commandControl = $this->ReadPropertyInteger('CommandControl');
-            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) { //0 = main category, 1 = none
+            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                 $commands = [];
                 $commands[] = '@RequestAction(' . $id . ', ' . $value . ');';
                 $this->SendDebug(__FUNCTION__, 'Befehl: ' . json_encode(json_encode($commands)), 0);
