@@ -344,7 +344,7 @@ trait SAHMIP_Config
                     [
                         'type'     => 'List',
                         'name'     => 'UpperLightUnitTriggerList',
-                        'caption' => 'Auslöser',
+                        'caption'  => 'Auslöser',
                         'rowCount' => 10,
                         'add'      => true,
                         'delete'   => true,
@@ -773,7 +773,7 @@ trait SAHMIP_Config
                     [
                         'type'     => 'List',
                         'name'     => 'LowerLightUnitTriggerList',
-                        'caption' => 'Auslöser',
+                        'caption'  => 'Auslöser',
                         'rowCount' => 10,
                         'add'      => true,
                         'delete'   => true,
