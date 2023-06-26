@@ -305,6 +305,7 @@ trait SA_Config
                 [
                     'type'     => 'List',
                     'name'     => 'TriggerList',
+                    'caption'  => 'Auslöser',
                     'rowCount' => 15,
                     'add'      => true,
                     'delete'   => true,
@@ -538,25 +539,9 @@ trait SA_Config
             'caption'  => 'Visualisierung',
             'items'    => [
                 [
-                    'type'    => 'Label',
-                    'caption' => 'Aktiv',
-                    'bold'    => true,
-                    'italic'  => true
-                ],
-                [
                     'type'    => 'CheckBox',
                     'name'    => 'EnableActive',
                     'caption' => 'Aktiv'
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => ' '
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => 'Statusanzeige',
-                    'bold'    => true,
-                    'italic'  => true
                 ],
                 [
                     'type'    => 'CheckBox',
@@ -748,22 +733,22 @@ trait SA_Config
         $form['status'][] = [
             'code'    => 101,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' wird erstellt',
+            'caption' => 'Statusanzeige wird erstellt',
         ];
         $form['status'][] = [
             'code'    => 102,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' ist aktiv',
+            'caption' => 'Statusanzeige ist aktiv',
         ];
         $form['status'][] = [
             'code'    => 103,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' wird gelöscht',
+            'caption' => 'Statusanzeige wird gelöscht',
         ];
         $form['status'][] = [
             'code'    => 104,
             'icon'    => 'inactive',
-            'caption' => $module['ModuleName'] . ' ist inaktiv',
+            'caption' => 'Statusanzeige ist inaktiv',
         ];
         $form['status'][] = [
             'code'    => 200,

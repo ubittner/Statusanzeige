@@ -135,7 +135,7 @@ trait SAHMIP_Config
                 ],
                 [
                     'type'    => 'Label',
-                    'caption' => "Modul:\t\t" . $module['ModuleName']
+                    'caption' => "Modul:\t\tStatusanzeige Homematic IP"
                 ],
                 [
                     'type'    => 'Label',
@@ -344,6 +344,7 @@ trait SAHMIP_Config
                     [
                         'type'     => 'List',
                         'name'     => 'UpperLightUnitTriggerList',
+                        'caption'  => 'Auslöser',
                         'rowCount' => 10,
                         'add'      => true,
                         'delete'   => true,
@@ -772,6 +773,7 @@ trait SAHMIP_Config
                     [
                         'type'     => 'List',
                         'name'     => 'LowerLightUnitTriggerList',
+                        'caption'  => 'Auslöser',
                         'rowCount' => 10,
                         'add'      => true,
                         'delete'   => true,
@@ -1303,12 +1305,6 @@ trait SAHMIP_Config
             'caption'  => 'Visualisierung',
             'items'    => [
                 [
-                    'type'    => 'Label',
-                    'caption' => 'Aktiv',
-                    'bold'    => true,
-                    'italic'  => true
-                ],
-                [
                     'type'    => 'CheckBox',
                     'name'    => 'EnableActive',
                     'caption' => 'Aktiv'
@@ -1534,22 +1530,22 @@ trait SAHMIP_Config
         $form['status'][] = [
             'code'    => 101,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' wird erstellt',
+            'caption' => 'Statusanzeige Homematic IP wird erstellt',
         ];
         $form['status'][] = [
             'code'    => 102,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' ist aktiv',
+            'caption' => 'Statusanzeige Homematic IP ist aktiv',
         ];
         $form['status'][] = [
             'code'    => 103,
             'icon'    => 'active',
-            'caption' => $module['ModuleName'] . ' wird gelöscht',
+            'caption' => 'Statusanzeige Homematic IP wird gelöscht',
         ];
         $form['status'][] = [
             'code'    => 104,
             'icon'    => 'inactive',
-            'caption' => $module['ModuleName'] . ' ist inaktiv',
+            'caption' => 'Statusanzeige Homematic IP ist inaktiv',
         ];
         $form['status'][] = [
             'code'    => 200,
