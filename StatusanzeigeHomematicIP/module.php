@@ -29,7 +29,6 @@ class StatusanzeigeHomematicIP extends IPSModule
     private const MODULE_GUID = '{B811C5C6-4DB9-2E1E-D8F8-1532D1A2CFCD}';
     private const MODULE_NAME = 'Statusanzeige Homematic IP';
     private const MODULE_PREFIX = 'SAHMIP';
-    private const MODULE_VERSION = '7.0-1, 08.09.2022';
     private const ABLAUFSTEUERUNG_MODULE_GUID = '{0559B287-1052-A73E-B834-EBD9B62CB938}';
     private const ABLAUFSTEUERUNG_MODULE_PREFIX = 'AST';
 
@@ -40,27 +39,35 @@ class StatusanzeigeHomematicIP extends IPSModule
 
         ########## Properties
 
+        //Info
         $this->RegisterPropertyString('Note', '');
-        $this->RegisterPropertyBoolean('EnableActive', false);
-        $this->RegisterPropertyBoolean('EnableUpperLightUnitColor', true);
-        $this->RegisterPropertyBoolean('EnableUpperLightUnitBrightness', true);
-        $this->RegisterPropertyBoolean('EnableLowerLightUnitColor', true);
-        $this->RegisterPropertyBoolean('EnableLowerLightUnitBrightness', true);
+
+        //Upper light unit
         $this->RegisterPropertyInteger('UpperLightUnitDeviceType', 0);
         $this->RegisterPropertyInteger('UpperLightUnit', 0);
         $this->RegisterPropertyInteger('UpperLightUnitSwitchingDelay', 0);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceBrightness', 0);
+        $this->RegisterPropertyBoolean('UpperLightUnitColorChangesOnly', false);
+        $this->RegisterPropertyBoolean('UpperLightUnitBrightnessChangesOnly', false);
         $this->RegisterPropertyString('UpperLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateLowerLightUnit', false);
+
+        //Lower light unit
         $this->RegisterPropertyInteger('LowerLightUnitDeviceType', 0);
         $this->RegisterPropertyInteger('LowerLightUnit', 0);
         $this->RegisterPropertyInteger('LowerLightUnitSwitchingDelay', 0);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceBrightness', 0);
+        $this->RegisterPropertyBoolean('LowerLightUnitColorChangesOnly', false);
+        $this->RegisterPropertyBoolean('LowerLightUnitBrightnessChangesOnly', false);
         $this->RegisterPropertyString('LowerLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateUpperLightUnit', false);
+
+        //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
+
+        //Deactivation
         $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeColor', true);
         $this->RegisterPropertyInteger('DeactivationUpperLightUnitColor', 0);
         $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeBrightness', false);
@@ -76,6 +83,13 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyBoolean('UseAutomaticDeactivation', false);
         $this->RegisterPropertyString('AutomaticDeactivationStartTime', '{"hour":22,"minute":0,"second":0}');
         $this->RegisterPropertyString('AutomaticDeactivationEndTime', '{"hour":6,"minute":0,"second":0}');
+
+        //Visualisation
+        $this->RegisterPropertyBoolean('EnableActive', false);
+        $this->RegisterPropertyBoolean('EnableUpperLightUnitColor', true);
+        $this->RegisterPropertyBoolean('EnableUpperLightUnitBrightness', true);
+        $this->RegisterPropertyBoolean('EnableLowerLightUnitColor', true);
+        $this->RegisterPropertyBoolean('EnableLowerLightUnitBrightness', true);
 
         ########## Variables
 
@@ -231,9 +245,10 @@ class StatusanzeigeHomematicIP extends IPSModule
         IPS_SetHidden($this->GetIDForIdent('LowerLightUnitColor'), !$this->ReadPropertyBoolean('EnableLowerLightUnitColor'));
         IPS_SetHidden($this->GetIDForIdent('LowerLightUnitBrightness'), !$this->ReadPropertyBoolean('EnableLowerLightUnitBrightness'));
 
+        $this->SetAutomaticDeactivationTimer();
+
         //Status
         $commandControl = $this->ReadPropertyInteger('CommandControl');
-        $this->SetAutomaticDeactivationTimer();
         if (!$this->CheckAutomaticDeactivationTimer()) {
             //Upper light unit
             if (!$this->ValidateTriggerList(0)) {
@@ -386,25 +401,25 @@ class StatusanzeigeHomematicIP extends IPSModule
 
             case 'UpperLightUnitColor':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetColor(0, $Value);
+                    $this->SetColor(0, $Value, true);
                 }
                 break;
 
             case 'UpperLightUnitBrightness':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetBrightness(0, $Value);
+                    $this->SetBrightness(0, $Value, true);
                 }
                 break;
 
             case 'LowerLightUnitColor':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetColor(1, $Value);
+                    $this->SetColor(1, $Value, true);
                 }
                 break;
 
             case 'LowerLightUnitBrightness':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetBrightness(1, $Value);
+                    $this->SetBrightness(1, $Value, true);
                 }
                 break;
 

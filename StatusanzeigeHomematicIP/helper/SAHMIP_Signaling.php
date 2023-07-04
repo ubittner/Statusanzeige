@@ -34,10 +34,15 @@ trait SAHMIP_Signaling
      * 7    = white
      *
      * @param int $Brightness
+     *
+     * @param bool $OverrideConfiguration
+     * false =  use configuration,
+     * true =   always set color and brightness
+     *
      * @return bool
      * @throws Exception
      */
-    public function SetDeviceSignaling(int $LightUnit, int $Color, int $Brightness): bool
+    public function SetDeviceSignaling(int $LightUnit, int $Color, int $Brightness, bool $OverrideConfiguration = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
@@ -47,8 +52,8 @@ trait SAHMIP_Signaling
             return false;
         }
         $result = true;
-        $color = $this->SetColor($LightUnit, $Color);
-        $brightness = $this->SetBrightness($LightUnit, $Brightness);
+        $color = $this->SetColor($LightUnit, $Color, $OverrideConfiguration);
+        $brightness = $this->SetBrightness($LightUnit, $Brightness, $OverrideConfiguration);
         if (!$color || !$brightness) {
             $result = false;
         }
@@ -185,10 +190,17 @@ trait SAHMIP_Signaling
      * 6    = yellow
      * 7    = white
      *
+     * @param bool $OverrideConfiguration
+     * false =  use configuration,
+     * true =   always set color
+     *
      * @return bool
+     * false =  an error occurred
+     * true =   successful
+     *
      * @throws Exception
      */
-    private function SetColor(int $LightUnit, int $Color): bool
+    private function SetColor(int $LightUnit, int $Color, bool $OverrideConfiguration = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
@@ -199,9 +211,13 @@ trait SAHMIP_Signaling
             $this->UpdateColorFromDeviceColor(0);
             $actualColor = $this->GetValue('UpperLightUnitColor');
             $this->SetValue('UpperLightUnitColor', $Color);
-            if ($actualColor == $Color) {
-                $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                return true;
+            if (!$OverrideConfiguration) {
+                if ($this->ReadPropertyBoolean('UpperLightUnitColorChangesOnly')) {
+                    if ($actualColor == $Color) {
+                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
+                        return true;
+                    }
+                }
             }
             $id = $this->ReadPropertyInteger('UpperLightUnit');
             if ($id > 1 && @IPS_ObjectExists($id)) {
@@ -240,9 +256,13 @@ trait SAHMIP_Signaling
         if ($LightUnit == 1) {
             $this->UpdateColorFromDeviceColor(1);
             $actualColor = $this->GetValue('LowerLightUnitColor');
-            if ($actualColor == $Color) {
-                $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                return true;
+            if (!$OverrideConfiguration) {
+                if ($this->ReadPropertyBoolean('LowerLightUnitColorChangesOnly')) {
+                    if ($actualColor == $Color) {
+                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
+                        return true;
+                    }
+                }
             }
             $this->SetValue('LowerLightUnitColor', $Color);
             $id = $this->ReadPropertyInteger('LowerLightUnit');
@@ -287,11 +307,17 @@ trait SAHMIP_Signaling
      * 0 =  Upper light unit
      * 1 =  Lower light unit
      *
-     * @param int $Brightness
+     * @param bool $OverrideConfiguration
+     * false =  use configuration,
+     * true =   always set color
+     *
      * @return bool
+     * false =  an error occurred
+     * true =   successful
+     *
      * @throws Exception
      */
-    private function SetBrightness(int $LightUnit, int $Brightness): bool
+    private function SetBrightness(int $LightUnit, int $Brightness, bool $OverrideConfiguration = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
@@ -302,9 +328,13 @@ trait SAHMIP_Signaling
             $this->UpdateBrightnessFromDeviceLevel(0);
             $actualBrightness = $this->GetValue('UpperLightUnitBrightness');
             $this->SetValue('UpperLightUnitBrightness', $Brightness);
-            if ($actualBrightness == $Brightness) {
-                $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                return true;
+            if (!$OverrideConfiguration) {
+                if ($this->ReadPropertyBoolean('UpperLightUnitBrightnessChangesOnly')) {
+                    if ($actualBrightness == $Brightness) {
+                        $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
+                        return true;
+                    }
+                }
             }
             $deviceBrightness = $this->GetValue('UpperLightUnitBrightness') / 100;
             $id = $this->ReadPropertyInteger('UpperLightUnit');
@@ -345,9 +375,13 @@ trait SAHMIP_Signaling
             $this->UpdateBrightnessFromDeviceLevel(1);
             $actualBrightness = $this->GetValue('LowerLightUnitBrightness');
             $this->SetValue('LowerLightUnitBrightness', $Brightness);
-            if ($actualBrightness == $Brightness) {
-                $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                return true;
+            if (!$OverrideConfiguration) {
+                if ($this->ReadPropertyBoolean('LowerLightUnitBrightnessChangesOnly')) {
+                    if ($actualBrightness == $Brightness) {
+                        $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
+                        return true;
+                    }
+                }
             }
             $deviceBrightness = $this->GetValue('LowerLightUnitBrightness') / 100;
             $id = $this->ReadPropertyInteger('LowerLightUnit');

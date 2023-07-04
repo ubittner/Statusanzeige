@@ -35,20 +35,20 @@ trait SAHMIP_Control
             //Set the values for the upper light unit from the automatic deactivation properties
             $this->WriteAttributeInteger('UpperLightUnitLastColor', $this->GetValue('UpperLightUnitColor'));
             if ($this->ReadPropertyBoolean('DeactivateUpperLightUnitChangeColor')) {
-                $this->SetColor(0, $this->ReadPropertyInteger('DeactivationUpperLightUnitColor'));
+                $this->SetColor(0, $this->ReadPropertyInteger('DeactivationUpperLightUnitColor'), true);
             }
             $this->WriteAttributeInteger('UpperLightUnitLastBrightness', $this->GetValue('UpperLightUnitBrightness'));
             if ($this->ReadPropertyBoolean('DeactivateUpperLightUnitChangeBrightness')) {
-                $this->SetBrightness(0, $this->ReadPropertyInteger('DeactivationUpperLightUnitBrightness'));
+                $this->SetBrightness(0, $this->ReadPropertyInteger('DeactivationUpperLightUnitBrightness'), true);
             }
             //Set the values for the lower light unit from the automatic deactivation properties
             $this->WriteAttributeInteger('LowerLightUnitLastColor', $this->GetValue('LowerLightUnitColor'));
             if ($this->ReadPropertyBoolean('DeactivateLowerLightUnitChangeColor')) {
-                $this->SetColor(1, $this->ReadPropertyInteger('DeactivationLowerLightUnitColor'));
+                $this->SetColor(1, $this->ReadPropertyInteger('DeactivationLowerLightUnitColor'), true);
             }
             $this->WriteAttributeInteger('LowerLightUnitLastBrightness', $this->GetValue('LowerLightUnitBrightness'));
             if ($this->ReadPropertyBoolean('DeactivateLowerLightUnitChangeBrightness')) {
-                $this->SetBrightness(1, $this->ReadPropertyInteger('DeactivationLowerLightUnitBrightness'));
+                $this->SetBrightness(1, $this->ReadPropertyInteger('DeactivationLowerLightUnitBrightness'), true);
             }
         }
 
@@ -59,12 +59,12 @@ trait SAHMIP_Control
                 $this->UpdateUpperLightUnit();
             } else {
                 if ($this->ReadPropertyBoolean('ReactivateUpperLightUnitLastColor')) {
-                    $this->SetColor(0, $this->ReadAttributeInteger('UpperLightUnitLastColor'));
+                    $this->SetColor(0, $this->ReadAttributeInteger('UpperLightUnitLastColor'), true);
                 } else {
                     $this->UpdateColorFromDeviceColor(0);
                 }
                 if ($this->ReadPropertyBoolean('ReactivateUpperLightUnitLastBrightness')) {
-                    $this->SetBrightness(0, $this->ReadAttributeInteger('UpperLightUnitLastBrightness'));
+                    $this->SetBrightness(0, $this->ReadAttributeInteger('UpperLightUnitLastBrightness'), true);
                 } else {
                     $this->UpdateBrightnessFromDeviceLevel(0);
                 }
@@ -74,12 +74,12 @@ trait SAHMIP_Control
                 $this->UpdateLowerLightUnit();
             } else {
                 if ($this->ReadPropertyBoolean('ReactivateLowerLightUnitLastColor')) {
-                    $this->SetColor(1, $this->ReadAttributeInteger('LowerLightUnitLastColor'));
+                    $this->SetColor(1, $this->ReadAttributeInteger('LowerLightUnitLastColor'), true);
                 } else {
                     $this->UpdateColorFromDeviceColor(1);
                 }
                 if ($this->ReadPropertyBoolean('ReactivateLowerLightUnitLastBrightness')) {
-                    $this->SetBrightness(1, $this->ReadAttributeInteger('LowerLightUnitLastBrightness'));
+                    $this->SetBrightness(1, $this->ReadAttributeInteger('LowerLightUnitLastBrightness'), true);
                 } else {
                     $this->UpdateBrightnessFromDeviceLevel(1);
                 }
