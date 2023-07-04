@@ -73,7 +73,7 @@ Das Modul Statusanzeige kann über eine externe Aktion geschaltet werden.
 Nachfolgendes Beispiel setzt die obere Leuchteinheit auf den Farbwert Rot bei einer Helligkeit von 100 %.
 
 ```php
-SAHMIP_SetDeviceSignaling(12345, 0, 4, 100); 
+SAHMIP_SetDeviceSignaling(12345, 0, 4, 100, true); 
 ``` 
 
 ### 6. PHP-Befehlsreferenz
@@ -81,35 +81,38 @@ SAHMIP_SetDeviceSignaling(12345, 0, 4, 100);
 #### 6.1 Signalisierung auslösen
 
 ```text
-boolean SAHMIP_SetDeviceSignaling(integer INSTANCE_ID, integer LIGHT_UNIT, integer COLOR, integer BRIGHTNESS);
+boolean SAHMIP_SetDeviceSignaling(integer INSTANCE_ID, integer LIGHT_UNIT, integer COLOR, integer BRIGHTNESS, boolean OVERRIDE_CONFIGURATION);
 ```
 
 Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE**, andernfalls **FALSE**.
 
-| Parameter     | Wert      | Bezeichnung      | Beschreibung         |
-|---------------|-----------|------------------|----------------------|
-| `INSTANCE_ID` |           | ID der Instanz   |                      |
-|               |           |                  |                      |
-| `LIGHT_UNIT`  |           | Leuchteinheit    |                      |
-|               | 0         | Upper light unit | Obere Leuchteinheit  |
-|               | 1         | Lower light unit | Untere Leuchteinheit |
-|               |           |                  |                      |
-| `COLOR`       |           | Farbe            |                      |
-|               | 0         | BLACK            | Schwarz (Aus)        |
-|               | 1         | BLUE             | Blau                 |
-|               | 2         | GREEN            | Grün                 |
-|               | 3         | TURQUOISE        | Türkis               |
-|               | 4         | RED              | Rot                  |
-|               | 5         | PURPLE           | Violett              |
-|               | 6         | YELLOW           | Gelb                 |
-|               | 7         | WHITE            | Weiß                 |
-|               |           |                  |                      |
-| `BRIGHTNESS`  |           | Helligkeit       |                      |
-|               | 0 bis 100 | 0 bis 100%       |                      |
+| Parameter                | Wert      | Bezeichnung      | Beschreibung                     |
+|--------------------------|-----------|------------------|----------------------------------|
+| `INSTANCE_ID`            |           | ID der Instanz   |                                  |
+|                          |           |                  |                                  |
+| `LIGHT_UNIT`             |           | Leuchteinheit    |                                  |
+|                          | 0         | Upper light unit | Obere Leuchteinheit              |
+|                          | 1         | Lower light unit | Untere Leuchteinheit             |
+|                          |           |                  |                                  |
+| `COLOR`                  |           | Farbe            |                                  |
+|                          | 0         | BLACK            | Schwarz (Aus)                    |
+|                          | 1         | BLUE             | Blau                             |
+|                          | 2         | GREEN            | Grün                             |
+|                          | 3         | TURQUOISE        | Türkis                           |
+|                          | 4         | RED              | Rot                              |
+|                          | 5         | PURPLE           | Violett                          |
+|                          | 6         | YELLOW           | Gelb                             |
+|                          | 7         | WHITE            | Weiß                             |
+|                          |           |                  |                                  |
+| `BRIGHTNESS`             |           | Helligkeit       |                                  |
+|                          | 0 bis 100 | 0 bis 100%       |                                  |
+|                          |           |                  |                                  |
+| `OVERRIDE_CONFIGURATION` | false     |                  | berücksichtige die Konfiguration |
+|                          | true      |                  | immer schalten                   |
 
 **Beispiel**:
-```php  
-SAHMIP_SetDeviceSignaling(12345, 1, 2, 50);
+```php
+SAHMIP_SetDeviceSignaling(12345, 1, 2, 50, true);
 ```
 
 ---

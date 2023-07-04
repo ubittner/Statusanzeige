@@ -186,7 +186,7 @@ trait SAHMIP_Config
         }
 
         //Upper light unit trigger list
-        $triggerListValues = [];
+        $upperLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('UpperLightUnitTriggerList'), true);
         foreach ($variables as $variable) {
             $sensorID = 0;
@@ -233,7 +233,7 @@ trait SAHMIP_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $upperLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -330,6 +330,20 @@ trait SAHMIP_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'UpperLightUnitColorChangesOnly',
+                        'caption' => 'Nur Farbänderungen berücksichtigen',
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'UpperLightUnitBrightnessChangesOnly',
+                        'caption' => 'Nur Helligkeitsänderungen berücksichtigen',
                     ],
                     [
                         'type'    => 'Label',
@@ -571,7 +585,7 @@ trait SAHMIP_Config
                                 ]
                             ]
                         ],
-                        'values' => $triggerListValues
+                        'values' => $upperLightUnitTriggerListValues
                     ],
                     [
                         'type'     => 'OpenObjectButton',
@@ -619,7 +633,7 @@ trait SAHMIP_Config
         }
 
         //Lower light unit trigger list
-        $triggerListValues = [];
+        $lowerLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('LowerLightUnitTriggerList'), true);
         foreach ($variables as $variable) {
             $sensorID = 0;
@@ -666,7 +680,7 @@ trait SAHMIP_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $lowerLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -759,6 +773,20 @@ trait SAHMIP_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'LowerLightUnitColorChangesOnly',
+                        'caption' => 'Nur Farbänderungen berücksichtigen',
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'LowerLightUnitBrightnessChangesOnly',
+                        'caption' => 'Nur Helligkeitsänderungen berücksichtigen',
                     ],
                     [
                         'type'    => 'Label',
@@ -1000,7 +1028,7 @@ trait SAHMIP_Config
                                 ]
                             ]
                         ],
-                        'values' => $triggerListValues
+                        'values' => $lowerLightUnitTriggerListValues
                     ],
                     [
                         'type'     => 'OpenObjectButton',
