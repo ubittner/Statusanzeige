@@ -35,7 +35,7 @@ trait SAHMIP_Config
      */
     public function ExpandExpansionPanels(bool $State): void
     {
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 1; $i <= 7; $i++) {
             $this->UpdateFormField('Panel' . $i, 'expanded', $State);
         }
     }
@@ -1054,6 +1054,23 @@ trait SAHMIP_Config
 
             ];
 
+        //Check status
+        $form['elements'][] =
+            [
+                'type'     => 'ExpansionPanel',
+                'name'     => 'Panel4',
+                'caption'  => 'Statusprüfung',
+                'items'    => [
+                    [
+                        'type'    => 'NumberSpinner',
+                        'name'    => 'CheckStatusInterval',
+                        'caption' => 'Statusprüfung',
+                        'minimum' => 0,
+                        'suffix'  => 'Sekunden'
+                    ]
+                ]
+            ];
+
         //Command control
         $id = $this->ReadPropertyInteger('CommandControl');
         $enableButton = false;
@@ -1064,7 +1081,7 @@ trait SAHMIP_Config
         $form['elements'][] =
             [
                 'type'     => 'ExpansionPanel',
-                'name'     => 'Panel4',
+                'name'     => 'Panel5',
                 'caption'  => 'Ablaufsteuerung',
                 'items'    => [
                     [
@@ -1097,7 +1114,7 @@ trait SAHMIP_Config
 
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel5',
+            'name'     => 'Panel6',
             'caption'  => 'Deaktivierung',
             'items'    => [
                 [
@@ -1329,7 +1346,7 @@ trait SAHMIP_Config
         //Visualisation
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel6',
+            'name'     => 'Panel7',
             'caption'  => 'Visualisierung',
             'items'    => [
                 [

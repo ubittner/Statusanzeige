@@ -85,6 +85,12 @@ trait SAHMIP_Signaling
             $this->UpdateColorFromDeviceColor(1);
             $this->UpdateBrightnessFromDeviceLevel(1);
         }
+        //Set check status timer
+        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
+        if ($milliseconds > 0) {
+            $milliseconds = $milliseconds * 1000;
+        }
+        $this->SetTimerInterval('CheckStatus', $milliseconds);
     }
 
     /**
