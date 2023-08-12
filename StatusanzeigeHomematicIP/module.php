@@ -64,6 +64,9 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyString('LowerLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateUpperLightUnit', false);
 
+        //Check status
+        $this->RegisterPropertyInteger('CheckStatusInterval', 0);
+
         //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
 
@@ -150,6 +153,7 @@ class StatusanzeigeHomematicIP extends IPSModule
 
         $this->RegisterTimer('StartAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StartAutomaticDeactivation(' . $this->InstanceID . ');');
         $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ',);');
+        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ',);');
     }
 
     public function ApplyChanges()
@@ -281,6 +285,13 @@ class StatusanzeigeHomematicIP extends IPSModule
         } else {
             $this->ToggleActive(false);
         }
+
+        //Set check status timer
+        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
+        if ($milliseconds > 0) {
+            $milliseconds = $milliseconds * 1000;
+        }
+        $this->SetTimerInterval('CheckStatus', $milliseconds);
     }
 
     public function Destroy()
