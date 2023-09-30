@@ -256,14 +256,14 @@ trait SAHM_Config
         ##### Inverted signalling
 
         //Inverted signalling device instance
-        $invertedSignallingDeviceInstance = $this->ReadPropertyInteger('SignallingDeviceInstance');
+        $invertedSignallingDeviceInstance = $this->ReadPropertyInteger('InvertedSignallingDeviceInstance');
         $enableInvertedSignallingDeviceInstanceButton = false;
         if ($invertedSignallingDeviceInstance > 1 && @IPS_ObjectExists($invertedSignallingDeviceInstance)) {
             $enableInvertedSignallingDeviceInstanceButton = true;
         }
 
         //Inverted signalling state
-        $invertedSignallingDeviceState = $this->ReadPropertyInteger('SignallingDeviceState');
+        $invertedSignallingDeviceState = $this->ReadPropertyInteger('InvertedSignallingDeviceState');
         $enableInvertedSignallingDeviceStateButton = false;
         if ($invertedSignallingDeviceState > 1 && @IPS_ObjectExists($invertedSignallingDeviceState)) {
             $enableInvertedSignallingDeviceStateButton = true;
