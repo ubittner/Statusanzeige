@@ -34,8 +34,8 @@ trait SAHM_Control
         $this->SetValue('Active', $State);
         //Inactive
         if (!$State) {
-            $this->SetSignalling(false, true, false);
-            $this->SetInvertedSignalling(false, true, false);
+            $this->SetSignalling(false, true);
+            $this->SetInvertedSignalling(false, true);
         }
         //Active
         else {

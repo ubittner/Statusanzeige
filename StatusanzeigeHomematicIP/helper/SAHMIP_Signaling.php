@@ -214,7 +214,6 @@ trait SAHMIP_Signaling
         $result = false;
         //Upper light unit
         if ($LightUnit == 0) {
-            $this->UpdateColorFromDeviceColor(0);
             $actualColor = $this->GetValue('UpperLightUnitColor');
             $this->SetValue('UpperLightUnitColor', $Color);
             if (!$OverrideConfiguration) {
@@ -260,7 +259,6 @@ trait SAHMIP_Signaling
         }
         //Lower light unit
         if ($LightUnit == 1) {
-            $this->UpdateColorFromDeviceColor(1);
             $actualColor = $this->GetValue('LowerLightUnitColor');
             if (!$OverrideConfiguration) {
                 if ($this->ReadPropertyBoolean('LowerLightUnitColorChangesOnly')) {
@@ -331,7 +329,6 @@ trait SAHMIP_Signaling
         $result = false;
         //Upper light unit
         if ($LightUnit == 0) {
-            $this->UpdateBrightnessFromDeviceLevel(0);
             $actualBrightness = $this->GetValue('UpperLightUnitBrightness');
             $this->SetValue('UpperLightUnitBrightness', $Brightness);
             if (!$OverrideConfiguration) {
@@ -378,7 +375,6 @@ trait SAHMIP_Signaling
         }
         //Lower light unit
         if ($LightUnit == 1) {
-            $this->UpdateBrightnessFromDeviceLevel(1);
             $actualBrightness = $this->GetValue('LowerLightUnitBrightness');
             $this->SetValue('LowerLightUnitBrightness', $Brightness);
             if (!$OverrideConfiguration) {

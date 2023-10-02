@@ -249,6 +249,11 @@ trait SAHM_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'SignallingChangesOnly',
+                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];
@@ -340,6 +345,11 @@ trait SAHM_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'InvertedSignallingChangesOnly',
+                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];

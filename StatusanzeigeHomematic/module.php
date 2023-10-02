@@ -47,10 +47,12 @@ class StatusanzeigeHomematic extends IPSModule
         $this->RegisterPropertyInteger('SignallingDeviceInstance', 0);
         $this->RegisterPropertyInteger('SignallingDeviceState', 0);
         $this->RegisterPropertyInteger('SignallingDelay', 0);
+        $this->RegisterPropertyBoolean('SignallingChangesOnly', false);
         $this->RegisterPropertyInteger('InvertedSignallingDeviceType', 0);
         $this->RegisterPropertyInteger('InvertedSignallingDeviceInstance', 0);
         $this->RegisterPropertyInteger('InvertedSignallingDeviceState', 0);
         $this->RegisterPropertyInteger('InvertedSignallingDelay', 0);
+        $this->RegisterPropertyBoolean('InvertedSignallingChangesOnly', false);
         $this->RegisterPropertyString('TriggerList', '[]');
         $this->RegisterPropertyInteger('CommandControl', 0);
         $this->RegisterPropertyBoolean('UseAutomaticDeactivation', false);
@@ -234,7 +236,7 @@ class StatusanzeigeHomematic extends IPSModule
                 break;
 
             case 'Signalling':
-                $this->ToggleSignalling($Value, false, true);
+                $this->ToggleSignalling($Value, false);
                 break;
 
         }

@@ -359,21 +359,33 @@ class StatusanzeigeHomematicIP extends IPSModule
                     //Upper light unit
                     //Checks if the trigger is assigned to the light unit
                     if ($this->CheckTrigger($SenderID, 0)) {
+                        /*
                         $scriptText = self::MODULE_PREFIX . '_UpdateUpperLightUnit(' . $this->InstanceID . ');';
                         IPS_RunScriptText($scriptText);
+                         */
+                        $this->UpdateUpperLightUnit();
                         if ($this->ReadPropertyBoolean('UpdateLowerLightUnit')) {
+                            /*
                             $scriptText = self::MODULE_PREFIX . '_UpdateLowerLightUnit(' . $this->InstanceID . ');';
                             IPS_RunScriptText($scriptText);
+                             */
+                            $this->UpdateLowerLightUnit();
                         }
                     }
                     //Lower light unit
                     //Checks if the trigger is assigned to the light unit
                     if ($this->CheckTrigger($SenderID, 1)) {
+                        /*
                         $scriptText = self::MODULE_PREFIX . '_UpdateLowerLightUnit(' . $this->InstanceID . ');';
                         IPS_RunScriptText($scriptText);
+                         */
+                        $this->UpdateLowerLightUnit();
                         if ($this->ReadPropertyBoolean('UpdateUpperLightUnit')) {
+                            /*
                             $scriptText = self::MODULE_PREFIX . '_UpdateUpperLightUnit(' . $this->InstanceID . ');';
                             IPS_RunScriptText($scriptText);
+                             */
+                            $this->UpdateUpperLightUnit();
                         }
                     }
                 }

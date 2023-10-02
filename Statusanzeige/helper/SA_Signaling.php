@@ -26,29 +26,25 @@ trait SA_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckVariableState
-     * false =  Don't check variable state
-     * true =   Check variable state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    public function ToggleSignalling(bool $State, bool $OverrideMaintenance, bool $CheckVariableState): bool
+    public function ToggleSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         //Off
         if (!$State) {
-            $result = $this->SetSignalling(false, $OverrideMaintenance, $CheckVariableState);
+            $result = $this->SetSignalling(false, $OverrideMaintenance);
             IPS_Sleep(100);
-            $this->SetInvertedSignalling(true, $OverrideMaintenance, $CheckVariableState);
+            $this->SetInvertedSignalling(true, $OverrideMaintenance);
         }
         //On
         else {
-            $this->SetInvertedSignalling(false, $OverrideMaintenance, $CheckVariableState);
+            $this->SetInvertedSignalling(false, $OverrideMaintenance);
             IPS_Sleep(100);
-            $result = $this->SetSignalling(true, $OverrideMaintenance, $CheckVariableState);
+            $result = $this->SetSignalling(true, $OverrideMaintenance);
         }
         return $result;
     }
@@ -86,11 +82,11 @@ trait SA_Signaling
                 //Signalling
                 switch ($variable['Signalling']) {
                     case 0: //Off
-                        $this->ToggleSignalling(false, false, false);
+                        $this->ToggleSignalling(false, false);
                         break;
 
                     case 1: //On
-                        $this->ToggleSignalling(true, false, false);
+                        $this->ToggleSignalling(true, false);
                         break;
 
                 }
@@ -111,17 +107,13 @@ trait SA_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckVariableState
-     * false =  Don't check variable state
-     * true =   Check variable state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    private function SetSignalling(bool $State, bool $OverrideMaintenance, bool $CheckVariableState): bool
+    private function SetSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $statusText = 'Aus';
@@ -141,7 +133,7 @@ trait SA_Signaling
         if ($id > 1 && @IPS_ObjectExists($id)) {
             $actualValue = $this->GetValue('Signalling');
             $this->SetValue('Signalling', $State);
-            if ($CheckVariableState) {
+            if ($this->ReadPropertyBoolean('SignallingChangesOnly')) {
                 $variable = $this->ReadPropertyInteger('SignallingVariable');
                 if ($variable > 1 && @IPS_ObjectExists($variable)) {
                     if (GetValue($variable) == $State) {
@@ -183,17 +175,13 @@ trait SA_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckVariableState
-     * false =  Don't check variable state
-     * true =   Check variable state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    private function SetInvertedSignalling(bool $State, bool $OverrideMaintenance, bool $CheckVariableState): bool
+    private function SetInvertedSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $statusText = 'Aus';
@@ -211,7 +199,7 @@ trait SA_Signaling
         $result = false;
         $id = $this->ReadPropertyInteger('InvertedSignallingVariable');
         if ($id > 1 && @IPS_ObjectExists($id)) {
-            if ($CheckVariableState) {
+            if ($this->ReadPropertyBoolean('InvertedSignallingChangesOnly')) {
                 $variable = $this->ReadPropertyInteger('InvertedSignallingVariable');
                 if ($variable > 1 && @IPS_ObjectExists($variable)) {
                     if (GetValue($variable) == $State) {

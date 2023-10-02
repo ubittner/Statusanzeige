@@ -130,8 +130,7 @@ trait SA_Config
             'items'    => [
                 [
                     'type'    => 'Label',
-                    'name'    => 'ModuleID',
-                    'caption' => "ID:\t\t" . $this->InstanceID
+                    'caption' => "ID:\t\t\t" . $this->InstanceID
                 ],
                 [
                     'type'    => 'Label',
@@ -200,6 +199,11 @@ trait SA_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'SignallingChangesOnly',
+                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];
@@ -242,6 +246,11 @@ trait SA_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'InvertedSignallingChangesOnly',
+                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];

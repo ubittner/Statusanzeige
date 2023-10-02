@@ -26,29 +26,25 @@ trait SAHM_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckDeviceState
-     * false =  Don't check device state
-     * true =   Check device state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    public function ToggleSignalling(bool $State, bool $OverrideMaintenance, bool $CheckDeviceState): bool
+    public function ToggleSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         //Off
         if (!$State) {
-            $result = $this->SetSignalling(false, $OverrideMaintenance, $CheckDeviceState);
+            $result = $this->SetSignalling(false, $OverrideMaintenance);
             IPS_Sleep(100);
-            $this->SetInvertedSignalling(true, $OverrideMaintenance, $CheckDeviceState);
+            $this->SetInvertedSignalling(true, $OverrideMaintenance);
         }
         //On
         else {
-            $this->SetInvertedSignalling(false, $OverrideMaintenance, $CheckDeviceState);
+            $this->SetInvertedSignalling(false, $OverrideMaintenance);
             IPS_Sleep(100);
-            $result = $this->SetSignalling(true, $OverrideMaintenance, $CheckDeviceState);
+            $result = $this->SetSignalling(true, $OverrideMaintenance);
         }
         return $result;
     }
@@ -86,11 +82,11 @@ trait SAHM_Signaling
                 //Signalling
                 switch ($variable['Signalling']) {
                     case 0: //Off
-                        $this->ToggleSignalling(false, false, false);
+                        $this->ToggleSignalling(false, false);
                         break;
 
                     case 1: //On
-                        $this->ToggleSignalling(true, false, false);
+                        $this->ToggleSignalling(true, false);
                         break;
 
                 }
@@ -111,17 +107,13 @@ trait SAHM_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckDeviceState
-     * false =  Don't check device state
-     * true =   Check device state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    private function SetSignalling(bool $State, bool $OverrideMaintenance, bool $CheckDeviceState): bool
+    private function SetSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $statusText = 'Aus';
@@ -142,7 +134,7 @@ trait SAHM_Signaling
             $result = true;
             $actualValue = $this->GetValue('Signalling');
             $this->SetValue('Signalling', $State);
-            if ($CheckDeviceState) {
+            if ($this->ReadPropertyBoolean('SignallingChangesOnly')) {
                 $deviceState = $this->ReadPropertyInteger('SignallingDeviceState');
                 if ($deviceState > 1 && @IPS_ObjectExists($deviceState)) {
                     if (GetValue($deviceState) == $State) {
@@ -195,17 +187,13 @@ trait SAHM_Signaling
      * false =  Check maintenance
      * true =   Always switch state
      *
-     * @param bool $CheckDeviceState
-     * false =  Don't check device state
-     * true =   Check device state
-     *
      * @return bool
      * false =  An error occurred
      * true =   Successful
      *
      * @throws Exception
      */
-    private function SetInvertedSignalling(bool $State, bool $OverrideMaintenance, bool $CheckDeviceState): bool
+    private function SetInvertedSignalling(bool $State, bool $OverrideMaintenance): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $statusText = 'Aus';
@@ -223,7 +211,7 @@ trait SAHM_Signaling
         $result = false;
         $id = $this->ReadPropertyInteger('InvertedSignallingDeviceInstance');
         if ($id > 1 && @IPS_ObjectExists($id)) {
-            if ($CheckDeviceState) {
+            if ($this->ReadPropertyBoolean('InvertedSignallingChangesOnly')) {
                 $deviceState = $this->ReadPropertyInteger('InvertedSignallingDeviceState');
                 if ($deviceState > 1 && @IPS_ObjectExists($deviceState)) {
                     if (GetValue($deviceState) == $State) {

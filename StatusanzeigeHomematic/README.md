@@ -64,14 +64,14 @@ Nachfolgendes Beispiel schaltet die Statusanzeige an.
 
 
 ```php
-SAHM_ToggleSignalling(12345, true, false, true);
+SAHM_ToggleSignalling(12345, true, false);
 ```
 ### 6. PHP-Befehlsreferenz
 
 #### 6.1 Signalisierung auslösen
 
 ```text
-boolean SAHM_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE, bool CHECK_DEVICE_STATE);
+boolean SAHM_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE);
 ```
 
 Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE**, andernfalls **FALSE**.
@@ -87,14 +87,10 @@ Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE
 | `OVERRIDE_MAINTENANCE` |            |                |                                  |
 |                        | false      | Aus            | Wartungsmodus wird geprüft       |
 |                        | true       | An             | Wartungsmodus wird nicht geprüft |
-|                        |            |                |                                  |
-| `CHECK_DEVICE_STATE`   |            |                |                                  |
-|                        | false      | Aus            | Prüft keinen Gerätestatus        |
-|                        | true       | An             | Prüft den Gerätestatus           |
 
 **Beispiel**:
 ```php
-SAHM_ToggleSignalling(12345, false, true, false);
+SAHM_ToggleSignalling(12345, false, true);
 ```
 
 ---

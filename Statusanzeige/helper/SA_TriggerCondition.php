@@ -70,11 +70,11 @@ trait SA_TriggerCondition
                                 //Signalling
                                 switch ($variable['Signalling']) {
                                     case 0: //Off
-                                        $this->ToggleSignalling(false, false, true);
+                                        $this->ToggleSignalling(false, false);
                                         break;
 
                                     case 1: //On
-                                        $this->ToggleSignalling(true, false, true);
+                                        $this->ToggleSignalling(true, false);
                                         break;
 
                                 }

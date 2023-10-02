@@ -59,14 +59,14 @@ Das Modul Statusanzeige kann über eine externe Aktion geschaltet werden.
 Nachfolgendes Beispiel schaltet die Statusanzeige an.
 
 ```php
-SA_ToggleSignalling(12345, true, false, true);
+SA_ToggleSignalling(12345, true, false);
 ```
 ### 6. PHP-Befehlsreferenz
 
 #### 6.1 Signalisierung auslösen
 
 ```text
-boolean SA_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE, bool CHECK_VARIABLE_STATE);
+boolean SA_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE);
 ```
 
 Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE**, andernfalls **FALSE**.
@@ -82,14 +82,10 @@ Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE
 | `OVERRIDE_MAINTENANCE` |            |                |                                      |
 |                        | false      | Aus            | Wartungsmodus wird geprüft           |
 |                        | true       | An             | Wartungsmodus wird nicht geprüft     |
-|                        |            |                |                                      |
-| `CHECK_VARIABLE_STATE` |            |                |                                      |
-|                        | false      | Aus            | Prüft keinen Status der Zielvariable |
-|                        | true       | An             | Prüft den Status der Zielvariable    |
 
 **Beispiel**:
 ```php
-SA_ToggleSignalling(12345, false, true, false);
+SA_ToggleSignalling(12345, false, true);
 ```
 
 ---
