@@ -1,13 +1,14 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
  * @file          SAHMIP_Control.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
 
@@ -19,6 +20,10 @@ trait SAHMIP_Control
      * Toggles the module inactive or active.
      *
      * @param bool $State
+     * false =  inactive,
+     * true =   active
+     *
+     * @return void
      * @throws Exception
      */
     public function ToggleActive(bool $State): void
@@ -51,12 +56,11 @@ trait SAHMIP_Control
                 $this->SetBrightness(1, $this->ReadPropertyInteger('DeactivationLowerLightUnitBrightness'), true);
             }
         }
-
         //Active
         else {
             //Upper light unit
             if ($this->ValidateTriggerList(0)) {
-                $this->UpdateUpperLightUnit();
+                $this->UpdateUpperLightUnit(true);
             } else {
                 if ($this->ReadPropertyBoolean('ReactivateUpperLightUnitLastColor')) {
                     $this->SetColor(0, $this->ReadAttributeInteger('UpperLightUnitLastColor'), true);
@@ -71,7 +75,7 @@ trait SAHMIP_Control
             }
             //Lower light unit
             if ($this->ValidateTriggerList(1)) {
-                $this->UpdateLowerLightUnit();
+                $this->UpdateLowerLightUnit(true);
             } else {
                 if ($this->ReadPropertyBoolean('ReactivateLowerLightUnitLastColor')) {
                     $this->SetColor(1, $this->ReadAttributeInteger('LowerLightUnitLastColor'), true);
@@ -90,6 +94,7 @@ trait SAHMIP_Control
     /**
      * Starts the automatic deactivation.
      *
+     * @return void
      * @throws Exception
      */
     public function StartAutomaticDeactivation(): void
@@ -102,6 +107,7 @@ trait SAHMIP_Control
     /**
      * Stops the automatic deactivation.
      *
+     * @return void
      * @throws Exception
      */
     public function StopAutomaticDeactivation(): void
@@ -115,6 +121,8 @@ trait SAHMIP_Control
 
     /**
      * Sets the timer for the automatic deactivation.
+     *
+     * @return void
      * @throws Exception
      */
     private function SetAutomaticDeactivationTimer(): void

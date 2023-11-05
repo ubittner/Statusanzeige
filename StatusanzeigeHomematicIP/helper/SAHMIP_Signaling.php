@@ -1,59 +1,63 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
  * @file          SAHMIP_Signaling.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpSwitchStatementWitSingleBranchInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
 trait SAHMIP_Signaling
 {
     /**
-     * Sets the color and brightness for a light unit.
+     * Sets the color and brightness for the light unit.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
      * @param int $Color
-     * 0    = black / off
-     * 1    = blue
-     * 2    = green
-     * 3    = turquoise
-     * 4    = red
-     * 5    = violet
-     * 6    = yellow
-     * 7    = white
+     * 0 =  black / off,
+     * 1 =  blue,
+     * 2 =  green,
+     * 3 =  turquoise,
+     * 4 =  red,
+     * 5 =  violet,
+     * 6 =  yellow,
+     * 7 =  white,
      *
      * @param int $Brightness
      *
-     * @param bool $OverrideConfiguration
+     * @param bool $ForceSignaling
      * false =  use configuration,
      * true =   always set color and brightness
      *
      * @return bool
+     * false =  an error occurred,
+     * true =   successful
+     *
      * @throws Exception
      */
-    public function SetDeviceSignaling(int $LightUnit, int $Color, int $Brightness, bool $OverrideConfiguration = false): bool
+    public function SetDeviceSignaling(int $LightUnit, int $Color, int $Brightness, bool $ForceSignaling = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
         $this->SendDebug(__FUNCTION__, 'Farbe: ' . $Color, 0);
         $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $Brightness, 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
         if ($this->CheckMaintenance()) {
             return false;
         }
         $result = true;
-        $color = $this->SetColor($LightUnit, $Color, $OverrideConfiguration);
-        $brightness = $this->SetBrightness($LightUnit, $Brightness, $OverrideConfiguration);
+        $color = $this->SetColor($LightUnit, $Color, $ForceSignaling);
+        $brightness = $this->SetBrightness($LightUnit, $Brightness, $ForceSignaling);
         if (!$color || !$brightness) {
             $result = false;
         }
@@ -63,24 +67,30 @@ trait SAHMIP_Signaling
     /**
      * Updates the light units.
      *
+     * @param bool $ForceSignaling
+     * false =  use configuration,
+     * true =   force signaling
+     *
+     * @return void
      * @throws Exception
      */
-    public function UpdateLightUnits(): void
+    public function UpdateLightUnits(bool $ForceSignaling): void
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
         if ($this->CheckMaintenance()) {
             return;
         }
         //Upper light unit
         if ($this->ValidateTriggerList(0)) {
-            $this->UpdateUpperLightUnit();
+            $this->UpdateUpperLightUnit($ForceSignaling);
         } else {
             $this->UpdateColorFromDeviceColor(0);
             $this->UpdateBrightnessFromDeviceLevel(0);
         }
         //Lower light unit
         if ($this->ValidateTriggerList(1)) {
-            $this->UpdateLowerLightUnit();
+            $this->UpdateLowerLightUnit($ForceSignaling);
         } else {
             $this->UpdateColorFromDeviceColor(1);
             $this->UpdateBrightnessFromDeviceLevel(1);
@@ -97,9 +107,10 @@ trait SAHMIP_Signaling
      * Updates the color from the actual device color.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
+     * @return void
      * @throws Exception
      */
     public function UpdateColorFromDeviceColor(int $LightUnit): void
@@ -117,7 +128,11 @@ trait SAHMIP_Signaling
             $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
             $color = GetValueInteger($id);
             $this->SendDebug(__FUNCTION__, 'Farbe: ' . $color, 0);
-            $this->SetValue($lightUnitColor, $color);
+            $actualColor = $this->GetValue($lightUnitColor);
+            //Set values, changes only
+            if ($actualColor != $color) {
+                $this->SetValue($lightUnitColor, $color);
+            }
         }
     }
 
@@ -125,9 +140,10 @@ trait SAHMIP_Signaling
      * Updates the brightness from the actual device level.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
+     * @return void
      * @throws Exception
      */
     public function UpdateBrightnessFromDeviceLevel(int $LightUnit): void
@@ -145,58 +161,74 @@ trait SAHMIP_Signaling
             $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
             $brightness = GetValueFloat($id) * 100;
             $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $brightness, 0);
-            $this->SetValue($lightUnitBrightness, $brightness);
+            $actualBrightness = $this->GetValue($lightUnitBrightness);
+            //Set values, changes only
+            if ($actualBrightness != $brightness) {
+                $this->SetValue($lightUnitBrightness, $brightness);
+            }
         }
+    }
+
+    /**
+     * Updates the color and the brightness for the upper light unit from trigger list.
+     *
+     * @param bool $ForceSignaling
+     * false =  use configuration,
+     * true =   always set color and brightness
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function UpdateUpperLightUnit(bool $ForceSignaling): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
+        if ($this->CheckMaintenance()) {
+            return;
+        }
+        $this->CheckTriggerConditions(0, $ForceSignaling);
+    }
+
+    /**
+     * Updates the color and the brightness for the lower light unit from trigger list.
+     *
+     * @param bool $ForceSignaling
+     *  false =  use configuration,
+     *  true =   always set color and brightness
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function UpdateLowerLightUnit(bool $ForceSignaling): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
+        if ($this->CheckMaintenance()) {
+            return;
+        }
+        $this->CheckTriggerConditions(1, $ForceSignaling);
     }
 
     #################### Private
 
     /**
-     * Updates the color and the brightness from trigger list for the upper light unit.
-     *
-     * @throws Exception
-     */
-    public function UpdateUpperLightUnit(): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        if ($this->CheckMaintenance()) {
-            return;
-        }
-        $this->CheckTriggerConditions(0);
-    }
-
-    /**
-     * Updates the color and the brightness from trigger list for the lower light unit.
-     *
-     * @throws Exception
-     */
-    public function UpdateLowerLightUnit(): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        if ($this->CheckMaintenance()) {
-            return;
-        }
-        $this->CheckTriggerConditions(1);
-    }
-
-    /**
      * Sets the device color of a light unit.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
      * @param int $Color
-     * 0    = black / off
-     * 1    = blue
-     * 2    = green
-     * 3    = turquoise
-     * 4    = red
-     * 5    = violet
-     * 6    = yellow
-     * 7    = white
+     * 0 =  black / off,
+     * 1 =  blue,
+     * 2 =  green,
+     * 3 =  turquoise,
+     * 4 =  red,
+     * 5 =  violet,
+     * 6 =  yellow,
+     * 7 =  white,
      *
-     * @param bool $OverrideConfiguration
+     * @param bool $ForceColor
      * false =  use configuration,
      * true =   always set color
      *
@@ -206,17 +238,21 @@ trait SAHMIP_Signaling
      *
      * @throws Exception
      */
-    private function SetColor(int $LightUnit, int $Color, bool $OverrideConfiguration = false): bool
+    private function SetColor(int $LightUnit, int $Color, bool $ForceColor = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
         $this->SendDebug(__FUNCTION__, 'Farbe: ' . $Color, 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceColor), 0);
         $result = false;
         //Upper light unit
         if ($LightUnit == 0) {
             $actualColor = $this->GetValue('UpperLightUnitColor');
-            $this->SetValue('UpperLightUnitColor', $Color);
-            if (!$OverrideConfiguration) {
+            //Set values, changes only
+            if ($actualColor != $Color) {
+                $this->SetValue('UpperLightUnitColor', $Color);
+            }
+            if (!$ForceColor) {
                 if ($this->ReadPropertyBoolean('UpperLightUnitColorChangesOnly')) {
                     if ($actualColor == $Color) {
                         $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
@@ -254,13 +290,18 @@ trait SAHMIP_Signaling
                             $this->SetValue('UpperLightUnitColor', $actualColor);
                         }
                         break;
+
                 }
             }
         }
         //Lower light unit
         if ($LightUnit == 1) {
             $actualColor = $this->GetValue('LowerLightUnitColor');
-            if (!$OverrideConfiguration) {
+            //Set values, changes only
+            if ($actualColor != $Color) {
+                $this->SetValue('LowerLightUnitColor', $Color);
+            }
+            if (!$ForceColor) {
                 if ($this->ReadPropertyBoolean('LowerLightUnitColorChangesOnly')) {
                     if ($actualColor == $Color) {
                         $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
@@ -268,7 +309,6 @@ trait SAHMIP_Signaling
                     }
                 }
             }
-            $this->SetValue('LowerLightUnitColor', $Color);
             $id = $this->ReadPropertyInteger('LowerLightUnit');
             if ($id > 1 && @IPS_ObjectExists($id)) {
                 switch ($this->ReadPropertyInteger('LowerLightUnitDeviceType')) {
@@ -298,6 +338,7 @@ trait SAHMIP_Signaling
                             $this->SetValue('LowerLightUnitBrightness', $actualColor);
                         }
                         break;
+
                 }
             }
         }
@@ -308,10 +349,12 @@ trait SAHMIP_Signaling
      * Sets the device brightness of a light unit.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
-     * @param bool $OverrideConfiguration
+     * @param int $Brightness
+     *
+     * @param bool $ForceBrightness
      * false =  use configuration,
      * true =   always set color
      *
@@ -321,17 +364,21 @@ trait SAHMIP_Signaling
      *
      * @throws Exception
      */
-    private function SetBrightness(int $LightUnit, int $Brightness, bool $OverrideConfiguration = false): bool
+    private function SetBrightness(int $LightUnit, int $Brightness, bool $ForceBrightness = false): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
         $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $Brightness, 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceBrightness), 0);
         $result = false;
         //Upper light unit
         if ($LightUnit == 0) {
             $actualBrightness = $this->GetValue('UpperLightUnitBrightness');
-            $this->SetValue('UpperLightUnitBrightness', $Brightness);
-            if (!$OverrideConfiguration) {
+            //Set values, changes only
+            if ($actualBrightness != $Brightness) {
+                $this->SetValue('UpperLightUnitBrightness', $Brightness);
+            }
+            if (!$ForceBrightness) {
                 if ($this->ReadPropertyBoolean('UpperLightUnitBrightnessChangesOnly')) {
                     if ($actualBrightness == $Brightness) {
                         $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
@@ -376,8 +423,11 @@ trait SAHMIP_Signaling
         //Lower light unit
         if ($LightUnit == 1) {
             $actualBrightness = $this->GetValue('LowerLightUnitBrightness');
-            $this->SetValue('LowerLightUnitBrightness', $Brightness);
-            if (!$OverrideConfiguration) {
+            //Set values, changes only
+            if ($actualBrightness != $Brightness) {
+                $this->SetValue('LowerLightUnitBrightness', $Brightness);
+            }
+            if (!$ForceBrightness) {
                 if ($this->ReadPropertyBoolean('LowerLightUnitBrightnessChangesOnly')) {
                     if ($actualBrightness == $Brightness) {
                         $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);

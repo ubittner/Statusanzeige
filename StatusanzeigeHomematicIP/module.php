@@ -9,6 +9,7 @@
  */
 
 /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
 
@@ -19,7 +20,7 @@ include_once __DIR__ . '/helper/SAHMIP_autoload.php';
 class StatusanzeigeHomematicIP extends IPSModule
 {
     //Helper
-    use SAHMIP_Config;
+    use SAHMIP_ConfigurationForm;
     use SAHMIP_Control;
     use SAHMIP_Signaling;
     use SAHMIP_TriggerCondition;
@@ -71,15 +72,15 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('CommandControl', 0);
 
         //Deactivation
-        $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeColor', true);
+        $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeColor', false);
         $this->RegisterPropertyInteger('DeactivationUpperLightUnitColor', 0);
-        $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeBrightness', false);
+        $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeBrightness', true);
         $this->RegisterPropertyInteger('DeactivationUpperLightUnitBrightness', 0);
         $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastColor', true);
         $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastBrightness', true);
-        $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeColor', true);
+        $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeColor', false);
         $this->RegisterPropertyInteger('DeactivationLowerLightUnitColor', 0);
-        $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeBrightness', false);
+        $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeBrightness', true);
         $this->RegisterPropertyInteger('DeactivationLowerLightUnitBrightness', 0);
         $this->RegisterPropertyBoolean('ReactivateLowerLightUnitLastColor', true);
         $this->RegisterPropertyBoolean('ReactivateLowerLightUnitLastBrightness', true);
@@ -152,8 +153,8 @@ class StatusanzeigeHomematicIP extends IPSModule
         ########## Timers
 
         $this->RegisterTimer('StartAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StartAutomaticDeactivation(' . $this->InstanceID . ');');
-        $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ',);');
-        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ',);');
+        $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ');');
+        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ', true);');
     }
 
     public function ApplyChanges()
@@ -252,6 +253,14 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->SetAutomaticDeactivationTimer();
 
         //Status
+        if (!$this->CheckAutomaticDeactivationTimer()) {
+            $this->UpdateLightUnits(true);
+        } else {
+            $this->ToggleActive(false);
+        }
+
+        /*
+        //Status
         $commandControl = $this->ReadPropertyInteger('CommandControl');
         if (!$this->CheckAutomaticDeactivationTimer()) {
             //Upper light unit
@@ -262,7 +271,7 @@ class StatusanzeigeHomematicIP extends IPSModule
                 if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                     $instance = @IPS_GetInstance($commandControl);
                     if ($instance['InstanceStatus'] == 102) {
-                        $this->CheckTriggerConditions(0);
+                        $this->CheckTriggerConditions(0, false);
                     } else {
                         $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
                     }
@@ -276,7 +285,7 @@ class StatusanzeigeHomematicIP extends IPSModule
                 if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
                     $instance = @IPS_GetInstance($commandControl);
                     if ($instance['InstanceStatus'] == 102) {
-                        $this->CheckTriggerConditions(1);
+                        $this->CheckTriggerConditions(1, false);
                     } else {
                         $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
                     }
@@ -285,6 +294,7 @@ class StatusanzeigeHomematicIP extends IPSModule
         } else {
             $this->ToggleActive(false);
         }
+         */
 
         //Set check status timer
         $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
@@ -354,38 +364,22 @@ class StatusanzeigeHomematicIP extends IPSModule
                     return;
                 }
 
+                //Trigger updates
                 if ($trigger) {
-                    //Trigger updates
                     //Upper light unit
                     //Checks if the trigger is assigned to the light unit
                     if ($this->CheckTrigger($SenderID, 0)) {
-                        /*
-                        $scriptText = self::MODULE_PREFIX . '_UpdateUpperLightUnit(' . $this->InstanceID . ');';
-                        IPS_RunScriptText($scriptText);
-                         */
-                        $this->UpdateUpperLightUnit();
+                        $this->UpdateUpperLightUnit(false);
                         if ($this->ReadPropertyBoolean('UpdateLowerLightUnit')) {
-                            /*
-                            $scriptText = self::MODULE_PREFIX . '_UpdateLowerLightUnit(' . $this->InstanceID . ');';
-                            IPS_RunScriptText($scriptText);
-                             */
-                            $this->UpdateLowerLightUnit();
+                            $this->UpdateLowerLightUnit(false);
                         }
                     }
                     //Lower light unit
                     //Checks if the trigger is assigned to the light unit
                     if ($this->CheckTrigger($SenderID, 1)) {
-                        /*
-                        $scriptText = self::MODULE_PREFIX . '_UpdateLowerLightUnit(' . $this->InstanceID . ');';
-                        IPS_RunScriptText($scriptText);
-                         */
-                        $this->UpdateLowerLightUnit();
+                        $this->UpdateLowerLightUnit(false);
                         if ($this->ReadPropertyBoolean('UpdateUpperLightUnit')) {
-                            /*
-                            $scriptText = self::MODULE_PREFIX . '_UpdateUpperLightUnit(' . $this->InstanceID . ');';
-                            IPS_RunScriptText($scriptText);
-                             */
-                            $this->UpdateUpperLightUnit();
+                            $this->UpdateUpperLightUnit(false);
                         }
                     }
                 }

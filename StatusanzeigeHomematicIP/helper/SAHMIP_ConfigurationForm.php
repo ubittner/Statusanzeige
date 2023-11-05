@@ -1,19 +1,20 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP
- * @file          AZ_Config.php
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
+ * @file          SAHMIP_ConfigurationForm.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
-trait SAHMIP_Config
+trait SAHMIP_ConfigurationForm
 {
     /**
      * Reloads the configuration form.
@@ -31,6 +32,7 @@ trait SAHMIP_Config
      * @param bool $State
      * false =  collapse,
      * true =   expand
+     *
      * @return void
      */
     public function ExpandExpansionPanels(bool $State): void
@@ -46,6 +48,7 @@ trait SAHMIP_Config
      * @param string $Field
      * @param string $Caption
      * @param int $ObjectID
+     *
      * @return void
      */
     public function ModifyButton(string $Field, string $Caption, int $ObjectID): void
@@ -64,6 +67,7 @@ trait SAHMIP_Config
      *
      * @param string $Field
      * @param string $Condition
+     *
      * @return void
      */
     public function ModifyTriggerListButton(string $Field, string $Condition): void
@@ -190,6 +194,7 @@ trait SAHMIP_Config
         $variables = json_decode($this->ReadPropertyString('UpperLightUnitTriggerList'), true);
         foreach ($variables as $variable) {
             $sensorID = 0;
+            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -202,6 +207,9 @@ trait SAHMIP_Config
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
+            }
+            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
+                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -233,7 +241,7 @@ trait SAHMIP_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $upperLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $upperLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -430,6 +438,13 @@ trait SAHMIP_Config
                                 'name'    => 'SensorID',
                                 'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $$UpperLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '100px',
+                                'add'     => ''
+                            ],
+                            [
+                                'caption' => 'Objektbaum',
+                                'name'    => 'VariableLocation',
+                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $$UpperLightUnitTriggerList["PrimaryCondition"]);',
+                                'width'   => '350px',
                                 'add'     => ''
                             ],
                             [
@@ -637,6 +652,7 @@ trait SAHMIP_Config
         $variables = json_decode($this->ReadPropertyString('LowerLightUnitTriggerList'), true);
         foreach ($variables as $variable) {
             $sensorID = 0;
+            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -649,6 +665,9 @@ trait SAHMIP_Config
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
+            }
+            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
+                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -680,7 +699,7 @@ trait SAHMIP_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $lowerLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $lowerLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -873,6 +892,13 @@ trait SAHMIP_Config
                                 'name'    => 'SensorID',
                                 'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "LowerLightUnitTriggerListConfigurationButton", $LowerLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '100px',
+                                'add'     => ''
+                            ],
+                            [
+                                'caption' => 'Objektbaum',
+                                'name'    => 'VariableLocation',
+                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "LowerLightUnitTriggerListConfigurationButton", $LowerLightUnitTriggerList["PrimaryCondition"]);',
+                                'width'   => '350px',
                                 'add'     => ''
                             ],
                             [
@@ -1404,13 +1430,19 @@ trait SAHMIP_Config
 
                 'type'    => 'Button',
                 'caption' => 'Status aktualisieren',
-                'onClick' => self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ');' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
+                'onClick' => self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ', true);' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
             ];
 
         $form['actions'][] =
             [
                 'type'    => 'Label',
                 'caption' => ' '
+            ];
+
+        $form['actions'][] =
+            [
+                'type'    => 'Label',
+                'caption' => 'Schaltelemente'
             ];
 
         $form['actions'][] =

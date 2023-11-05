@@ -4,11 +4,13 @@
  * @project       Statusanzeige/StatusanzeigeHomematicIP
  * @file          SAHMIP_TriggerCondition.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
+/** @noinspection PhpUnusedPrivateMethodInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
@@ -20,8 +22,9 @@ trait SAHMIP_TriggerCondition
      *
      * @param int $VariableID
      * @param int $LightUnit
-     * 0    = Upper light unit
-     * 1    = lower light unit
+     * 0 =  Upper light unit,
+     * 1 =  Lower light unit
+     *
      * @return bool
      * @throws Exception
      */
@@ -64,12 +67,21 @@ trait SAHMIP_TriggerCondition
      * Checks the trigger conditions of the light unit and sets the color and brightness.
      *
      * @param int $LightUnit
+     * 0 =  Upper light unit,
+     * 1 =  Lower light unit
+     *
+     * @param bool $ForceSignaling
+     * false =  use configuration,
+     * true =   always set color and brightness
+     *
+     * @return void
      * @throws Exception
      */
-    private function CheckTriggerConditions(int $LightUnit): void
+    private function CheckTriggerConditions(int $LightUnit, bool $ForceSignaling): void
     {
         $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
+        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
         if ($this->CheckMaintenance()) {
             return;
         }
@@ -110,10 +122,11 @@ trait SAHMIP_TriggerCondition
                 }
                 if ($execute) {
                     //Color
-                    $this->SetColor($LightUnit, $variable['Color']);
-                    $this->SendDebug(__FUNCTION__, 'LightUnit: ' . $LightUnit . ', Color: ' . $variable['Color'], 0);
+                    $this->SetColor($LightUnit, $variable['Color'], $ForceSignaling);
+                    $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit . ', Farbe: ' . $variable['Color'], 0);
                     //Brightness
-                    $this->SetBrightness($LightUnit, $variable['Brightness']);
+                    $this->SetBrightness($LightUnit, $variable['Brightness'], $ForceSignaling);
+                    $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit . ', Helligkeit: ' . $variable['Brightness'], 0);
                     break;
                 }
             }
@@ -124,7 +137,7 @@ trait SAHMIP_TriggerCondition
      * Validates the trigger list of the light unit for an existing and activated trigger.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit
+     * 0 =  Upper light unit,
      * 1 =  Lower light unit
      *
      * @return bool
