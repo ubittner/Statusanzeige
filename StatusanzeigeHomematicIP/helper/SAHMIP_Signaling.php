@@ -253,11 +253,9 @@ trait SAHMIP_Signaling
                 $this->SetValue('UpperLightUnitColor', $Color);
             }
             if (!$ForceColor) {
-                if ($this->ReadPropertyBoolean('UpperLightUnitColorChangesOnly')) {
-                    if ($actualColor == $Color) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                        return true;
-                    }
+                if ($actualColor == $Color) {
+                    $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
+                    return true;
                 }
             }
             $id = $this->ReadPropertyInteger('UpperLightUnit');
@@ -302,11 +300,9 @@ trait SAHMIP_Signaling
                 $this->SetValue('LowerLightUnitColor', $Color);
             }
             if (!$ForceColor) {
-                if ($this->ReadPropertyBoolean('LowerLightUnitColorChangesOnly')) {
-                    if ($actualColor == $Color) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                        return true;
-                    }
+                if ($actualColor == $Color) {
+                    $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
+                    return true;
                 }
             }
             $id = $this->ReadPropertyInteger('LowerLightUnit');
@@ -379,11 +375,9 @@ trait SAHMIP_Signaling
                 $this->SetValue('UpperLightUnitBrightness', $Brightness);
             }
             if (!$ForceBrightness) {
-                if ($this->ReadPropertyBoolean('UpperLightUnitBrightnessChangesOnly')) {
-                    if ($actualBrightness == $Brightness) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                        return true;
-                    }
+                if ($actualBrightness == $Brightness) {
+                    $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
+                    return true;
                 }
             }
             $deviceBrightness = $this->GetValue('UpperLightUnitBrightness') / 100;
@@ -428,11 +422,9 @@ trait SAHMIP_Signaling
                 $this->SetValue('LowerLightUnitBrightness', $Brightness);
             }
             if (!$ForceBrightness) {
-                if ($this->ReadPropertyBoolean('LowerLightUnitBrightnessChangesOnly')) {
-                    if ($actualBrightness == $Brightness) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                        return true;
-                    }
+                if ($actualBrightness == $Brightness) {
+                    $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
+                    return true;
                 }
             }
             $deviceBrightness = $this->GetValue('LowerLightUnitBrightness') / 100;

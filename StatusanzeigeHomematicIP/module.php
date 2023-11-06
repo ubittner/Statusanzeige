@@ -49,8 +49,6 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('UpperLightUnitSwitchingDelay', 0);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceBrightness', 0);
-        $this->RegisterPropertyBoolean('UpperLightUnitColorChangesOnly', false);
-        $this->RegisterPropertyBoolean('UpperLightUnitBrightnessChangesOnly', false);
         $this->RegisterPropertyString('UpperLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateLowerLightUnit', false);
 
@@ -60,13 +58,11 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('LowerLightUnitSwitchingDelay', 0);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceBrightness', 0);
-        $this->RegisterPropertyBoolean('LowerLightUnitColorChangesOnly', false);
-        $this->RegisterPropertyBoolean('LowerLightUnitBrightnessChangesOnly', false);
         $this->RegisterPropertyString('LowerLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateUpperLightUnit', false);
 
         //Check status
-        $this->RegisterPropertyInteger('CheckStatusInterval', 0);
+        $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
 
         //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
@@ -254,47 +250,24 @@ class StatusanzeigeHomematicIP extends IPSModule
 
         //Status
         if (!$this->CheckAutomaticDeactivationTimer()) {
-            $this->UpdateLightUnits(true);
-        } else {
-            $this->ToggleActive(false);
-        }
-
-        /*
-        //Status
-        $commandControl = $this->ReadPropertyInteger('CommandControl');
-        if (!$this->CheckAutomaticDeactivationTimer()) {
-            //Upper light unit
-            if (!$this->ValidateTriggerList(0)) {
-                $this->UpdateColorFromDeviceColor(0);
-                $this->UpdateBrightnessFromDeviceLevel(0);
-            } else {
-                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                    $instance = @IPS_GetInstance($commandControl);
-                    if ($instance['InstanceStatus'] == 102) {
-                        $this->CheckTriggerConditions(0, false);
-                    } else {
-                        $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
-                    }
+            $update = true;
+            $commandControl = $this->ReadPropertyInteger('CommandControl');
+            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                $instance = @IPS_GetInstance($commandControl);
+                if ($instance['InstanceStatus'] != 102) {
+                    $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
+                    $update = false;
                 }
             }
-            //Lower light unit
-            if (!$this->ValidateTriggerList(1)) {
-                $this->UpdateColorFromDeviceColor(1);
-                $this->UpdateBrightnessFromDeviceLevel(1);
-            } else {
-                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                    $instance = @IPS_GetInstance($commandControl);
-                    if ($instance['InstanceStatus'] == 102) {
-                        $this->CheckTriggerConditions(1, false);
-                    } else {
-                        $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
-                    }
-                }
+            if ($commandControl > 1 && @!IPS_ObjectExists($commandControl)) {
+                $update = false;
+            }
+            if ($update) {
+                $this->UpdateLightUnits(true);
             }
         } else {
             $this->ToggleActive(false);
         }
-         */
 
         //Set check status timer
         $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');

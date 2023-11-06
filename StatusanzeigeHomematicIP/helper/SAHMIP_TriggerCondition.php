@@ -121,11 +121,17 @@ trait SAHMIP_TriggerCondition
                     }
                 }
                 if ($execute) {
+                    if ($ForceSignaling) {
+                        $force = true;
+                    } else {
+                        $force = $variable['ForceSignaling'];
+                    }
+                    $this->SendDebug(__FUNCTION__, 'Signalisierung forcieren: ' . json_encode($force), 0);
                     //Color
-                    $this->SetColor($LightUnit, $variable['Color'], $ForceSignaling);
+                    $this->SetColor($LightUnit, $variable['Color'], $force);
                     $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit . ', Farbe: ' . $variable['Color'], 0);
                     //Brightness
-                    $this->SetBrightness($LightUnit, $variable['Brightness'], $ForceSignaling);
+                    $this->SetBrightness($LightUnit, $variable['Brightness'], $force);
                     $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit . ', Helligkeit: ' . $variable['Brightness'], 0);
                     break;
                 }

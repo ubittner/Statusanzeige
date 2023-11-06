@@ -87,6 +87,12 @@ trait SAHMIP_ConfigurationForm
         $this->UpdateFormField($Field, 'caption', 'ID ' . $id . ' Bearbeiten');
         $this->UpdateFormField($Field, 'visible', $state);
         $this->UpdateFormField($Field, 'objectID', $id);
+        if ($Field == 'UpperLightUnitTriggerListConfigurationButton') {
+            $this->UpdateFormField('UpperLightUnitTriggerListConfigurationButtonSpacer', 'visible', $state);
+        }
+        if ($Field == 'LowerLightUnitTriggerListConfigurationButton') {
+            $this->UpdateFormField('LowerLightUnitTriggerListConfigurationButtonSpacer', 'visible', $state);
+        }
     }
 
     /**
@@ -192,6 +198,7 @@ trait SAHMIP_ConfigurationForm
         //Upper light unit trigger list
         $upperLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('UpperLightUnitTriggerList'), true);
+        $amount = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
             $variableLocation = '';
@@ -246,10 +253,10 @@ trait SAHMIP_ConfigurationForm
 
         $form['elements'][] =
             [
-                'type'     => 'ExpansionPanel',
-                'name'     => 'Panel2',
-                'caption'  => 'Obere Leuchteinheit',
-                'items'    => [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel2',
+                'caption' => 'Obere Leuchteinheit',
+                'items'   => [
                     [
                         'type'    => 'Label',
                         'caption' => 'Gerät',
@@ -344,20 +351,6 @@ trait SAHMIP_ConfigurationForm
                         'caption' => ' '
                     ],
                     [
-                        'type'    => 'CheckBox',
-                        'name'    => 'UpperLightUnitColorChangesOnly',
-                        'caption' => 'Nur Farbänderungen berücksichtigen',
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'UpperLightUnitBrightnessChangesOnly',
-                        'caption' => 'Nur Helligkeitsänderungen berücksichtigen',
-                    ],
-                    [
-                        'type'    => 'Label',
-                        'caption' => ' '
-                    ],
-                    [
                         'type'    => 'Label',
                         'caption' => 'Auslöser',
                         'italic'  => true,
@@ -367,7 +360,7 @@ trait SAHMIP_ConfigurationForm
                         'type'     => 'List',
                         'name'     => 'UpperLightUnitTriggerList',
                         'caption'  => 'Auslöser',
-                        'rowCount' => 10,
+                        'rowCount' => $amount,
                         'add'      => true,
                         'delete'   => true,
                         'sort'     => [
@@ -436,14 +429,14 @@ trait SAHMIP_ConfigurationForm
                             [
                                 'caption' => 'ID',
                                 'name'    => 'SensorID',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $$UpperLightUnitTriggerList["PrimaryCondition"]);',
+                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '100px',
                                 'add'     => ''
                             ],
                             [
                                 'caption' => 'Objektbaum',
                                 'name'    => 'VariableLocation',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $$UpperLightUnitTriggerList["PrimaryCondition"]);',
+                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '350px',
                                 'add'     => ''
                             ],
@@ -584,6 +577,7 @@ trait SAHMIP_ConfigurationForm
                                             'caption' => 'Weiß',
                                             'value'   => 7
                                         ]
+
                                     ]
                                 ]
                             ],
@@ -597,6 +591,15 @@ trait SAHMIP_ConfigurationForm
                                     'suffix'  => '%',
                                     'minimum' => 0,
                                     'maximum' => 100
+                                ]
+                            ],
+                            [
+                                'caption' => 'Signalisierung forcieren',
+                                'name'    => 'ForceSignaling',
+                                'width'   => '200px',
+                                'add'     => false,
+                                'edit'    => [
+                                    'type' => 'CheckBox'
                                 ]
                             ]
                         ],
@@ -650,6 +653,7 @@ trait SAHMIP_ConfigurationForm
         //Lower light unit trigger list
         $lowerLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('LowerLightUnitTriggerList'), true);
+        $amount = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
             $variableLocation = '';
@@ -704,10 +708,10 @@ trait SAHMIP_ConfigurationForm
 
         $form['elements'][] =
             [
-                'type'     => 'ExpansionPanel',
-                'name'     => 'Panel3',
-                'caption'  => 'Untere Leuchteinheit',
-                'items'    => [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel3',
+                'caption' => 'Untere Leuchteinheit',
+                'items'   => [
                     [
                         'type'    => 'Label',
                         'caption' => 'Gerät',
@@ -798,20 +802,6 @@ trait SAHMIP_ConfigurationForm
                         'caption' => ' '
                     ],
                     [
-                        'type'    => 'CheckBox',
-                        'name'    => 'LowerLightUnitColorChangesOnly',
-                        'caption' => 'Nur Farbänderungen berücksichtigen',
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'LowerLightUnitBrightnessChangesOnly',
-                        'caption' => 'Nur Helligkeitsänderungen berücksichtigen',
-                    ],
-                    [
-                        'type'    => 'Label',
-                        'caption' => ' '
-                    ],
-                    [
                         'type'    => 'Label',
                         'caption' => 'Auslöser',
                         'italic'  => true,
@@ -821,7 +811,7 @@ trait SAHMIP_ConfigurationForm
                         'type'     => 'List',
                         'name'     => 'LowerLightUnitTriggerList',
                         'caption'  => 'Auslöser',
-                        'rowCount' => 10,
+                        'rowCount' => $amount,
                         'add'      => true,
                         'delete'   => true,
                         'sort'     => [
@@ -1052,6 +1042,15 @@ trait SAHMIP_ConfigurationForm
                                     'minimum' => 0,
                                     'maximum' => 100
                                 ]
+                            ],
+                            [
+                                'caption' => 'Signalisierung forcieren',
+                                'name'    => 'ForceSignaling',
+                                'width'   => '200px',
+                                'add'     => false,
+                                'edit'    => [
+                                    'type' => 'CheckBox'
+                                ]
                             ]
                         ],
                         'values' => $lowerLightUnitTriggerListValues
@@ -1083,10 +1082,10 @@ trait SAHMIP_ConfigurationForm
         //Check status
         $form['elements'][] =
             [
-                'type'     => 'ExpansionPanel',
-                'name'     => 'Panel4',
-                'caption'  => 'Statusprüfung',
-                'items'    => [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel4',
+                'caption' => 'Statusprüfung',
+                'items'   => [
                     [
                         'type'    => 'NumberSpinner',
                         'name'    => 'CheckStatusInterval',
@@ -1106,10 +1105,10 @@ trait SAHMIP_ConfigurationForm
 
         $form['elements'][] =
             [
-                'type'     => 'ExpansionPanel',
-                'name'     => 'Panel5',
-                'caption'  => 'Ablaufsteuerung',
-                'items'    => [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel5',
+                'caption' => 'Ablaufsteuerung',
+                'items'   => [
                     [
                         'type'  => 'RowLayout',
                         'items' => [
@@ -1139,10 +1138,10 @@ trait SAHMIP_ConfigurationForm
             ];
 
         $form['elements'][] = [
-            'type'     => 'ExpansionPanel',
-            'name'     => 'Panel6',
-            'caption'  => 'Deaktivierung',
-            'items'    => [
+            'type'    => 'ExpansionPanel',
+            'name'    => 'Panel6',
+            'caption' => 'Deaktivierung',
+            'items'   => [
                 [
                     'type'    => 'Label',
                     'caption' => 'Deaktivierung',
@@ -1371,10 +1370,10 @@ trait SAHMIP_ConfigurationForm
 
         //Visualisation
         $form['elements'][] = [
-            'type'     => 'ExpansionPanel',
-            'name'     => 'Panel7',
-            'caption'  => 'Visualisierung',
-            'items'    => [
+            'type'    => 'ExpansionPanel',
+            'name'    => 'Panel7',
+            'caption' => 'Visualisierung',
+            'items'   => [
                 [
                     'type'    => 'CheckBox',
                     'name'    => 'EnableActive',
@@ -1459,6 +1458,7 @@ trait SAHMIP_ConfigurationForm
         //Registered references
         $registeredReferences = [];
         $references = $this->GetReferenceList();
+        $amountReferences = count($references);
         foreach ($references as $reference) {
             $name = 'Objekt #' . $reference . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -1475,6 +1475,7 @@ trait SAHMIP_ConfigurationForm
         //Registered messages
         $registeredMessages = [];
         $messages = $this->GetMessageList();
+        $amountMessages = count($messages);
         foreach ($messages as $id => $messageID) {
             $name = 'Objekt #' . $id . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -1510,7 +1511,7 @@ trait SAHMIP_ConfigurationForm
                     'type'     => 'List',
                     'caption'  => 'Registrierte Referenzen',
                     'name'     => 'RegisteredReferences',
-                    'rowCount' => 10,
+                    'rowCount' => $amountReferences,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'
@@ -1542,7 +1543,7 @@ trait SAHMIP_ConfigurationForm
                     'type'     => 'List',
                     'name'     => 'RegisteredMessages',
                     'caption'  => 'Registrierte Nachrichten',
-                    'rowCount' => 10,
+                    'rowCount' => $amountMessages,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'
