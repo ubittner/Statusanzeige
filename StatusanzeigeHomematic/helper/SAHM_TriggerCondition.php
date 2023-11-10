@@ -1,16 +1,16 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper
  * @file          SAHM_TriggerCondition.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
@@ -21,12 +21,17 @@ trait SAHM_TriggerCondition
      *
      * @param int $SenderID
      * @param bool $ValueChanged
-     * false =  same value
+     * false =  same value,
      * true =   new value
      *
+     * @param bool $ForceSignaling
+     * false =  use configuration,
+     * true =   always toggle
+     *
+     * @return void
      * @throws Exception
      */
-    public function CheckTriggerConditions(int $SenderID, bool $ValueChanged): void
+    public function CheckTriggerConditions(int $SenderID, bool $ValueChanged, bool $ForceSignaling): void
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $this->SendDebug(__FUNCTION__, 'Sender: ' . $SenderID, 0);
@@ -67,14 +72,23 @@ trait SAHM_TriggerCondition
                                 $this->SendDebug(__FUNCTION__, 'Abbruch, die Bedingungen wurden nicht erfüllt!', 0);
                             } else {
                                 $this->SendDebug(__FUNCTION__, 'Die Bedingungen wurden erfüllt.', 0);
+                                if ($ForceSignaling) {
+                                    $force = true;
+                                } else {
+                                    $force = false;
+                                    if (isset($variable['ForceSignaling'])) {
+                                        $force = $variable['ForceSignaling'];
+                                    }
+                                }
+                                $this->SendDebug(__FUNCTION__, 'Signalisierung forcieren: ' . json_encode($force), 0);
                                 //Signalling
                                 switch ($variable['Signalling']) {
                                     case 0: //Off
-                                        $this->ToggleSignalling(false, false);
+                                        $this->ToggleSignalling(false, $force);
                                         break;
 
                                     case 1: //On
-                                        $this->ToggleSignalling(true, false);
+                                        $this->ToggleSignalling(true, $force);
                                         break;
 
                                 }

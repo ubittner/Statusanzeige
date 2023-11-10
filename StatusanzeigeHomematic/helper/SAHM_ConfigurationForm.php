@@ -1,19 +1,20 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic
- * @file          SAHM_Config.php
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper
+ * @file          SAHM_ConfigurationForm.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
 
-trait SAHM_Config
+trait SAHM_ConfigurationForm
 {
     /**
      * Reloads the configuration form.
@@ -31,6 +32,7 @@ trait SAHM_Config
      * @param bool $State
      * false =  collapse,
      * true =   expand
+     *
      * @return void
      */
     public function ExpandExpansionPanels(bool $State): void
@@ -249,107 +251,6 @@ trait SAHM_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'SignallingChangesOnly',
-                        'caption' => 'Nur Änderungen schalten',
-                    ]
-                ]
-            ];
-
-        ##### Inverted signalling
-
-        //Inverted signalling device instance
-        $invertedSignallingDeviceInstance = $this->ReadPropertyInteger('InvertedSignallingDeviceInstance');
-        $enableInvertedSignallingDeviceInstanceButton = false;
-        if ($invertedSignallingDeviceInstance > 1 && @IPS_ObjectExists($invertedSignallingDeviceInstance)) {
-            $enableInvertedSignallingDeviceInstanceButton = true;
-        }
-
-        //Inverted signalling state
-        $invertedSignallingDeviceState = $this->ReadPropertyInteger('InvertedSignallingDeviceState');
-        $enableInvertedSignallingDeviceStateButton = false;
-        if ($invertedSignallingDeviceState > 1 && @IPS_ObjectExists($invertedSignallingDeviceState)) {
-            $enableInvertedSignallingDeviceStateButton = true;
-        }
-
-        $form['elements'][] =
-            [
-                'type'     => 'ExpansionPanel',
-                'name'     => 'Panel3',
-                'caption'  => 'Invertierte Anzeige',
-                'items'    => [
-                    [
-                        'type'    => 'Label',
-                        'caption' => 'Gerät',
-                        'italic'  => true,
-                        'bold'    => true
-                    ],
-                    [
-                        'type'    => 'Select',
-                        'name'    => 'InvertedSignallingDeviceType',
-                        'caption' => 'Typ',
-                        'options' => [
-                            [
-                                'caption' => 'Kein Gerät',
-                                'value'   => 0
-                            ],
-                            [
-                                'caption' => 'HM-LC-Sw4-WM, Kanal n',
-                                'value'   => 1
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'     => 'SelectInstance',
-                                'name'     => 'InvertedSignallingDeviceInstance',
-                                'caption'  => 'Instanz',
-                                'width'    => '600px',
-                                'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "InvertedSignallingDeviceInstanceConfigurationButton", "ID " . $InvertedSignallingDeviceInstance . " konfigurieren", $InvertedSignallingDeviceInstance);'
-                            ],
-                            [
-                                'type'     => 'OpenObjectButton',
-                                'name'     => 'InvertedSignallingDeviceInstanceConfigurationButton',
-                                'caption'  => 'ID ' . $invertedSignallingDeviceInstance . ' konfigurieren',
-                                'visible'  => $enableInvertedSignallingDeviceInstanceButton,
-                                'objectID' => $invertedSignallingDeviceInstance
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'  => 'RowLayout',
-                        'items' => [
-                            [
-                                'type'     => 'SelectVariable',
-                                'name'     => 'InvertedSignallingDeviceState',
-                                'caption'  => 'Variable STATE',
-                                'width'    => '600px',
-                                'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "InvertedSignallingDeviceStateConfigurationButton", "ID " . $InvertedSignallingDeviceState . " bearbeiten", $InvertedSignallingDeviceState);'
-                            ],
-                            [
-                                'type'     => 'OpenObjectButton',
-                                'name'     => 'InvertedSignallingDeviceStateConfigurationButton',
-                                'caption'  => 'ID ' . $invertedSignallingDeviceState . ' bearbeiten',
-                                'visible'  => $enableInvertedSignallingDeviceStateButton,
-                                'objectID' => $invertedSignallingDeviceState
-                            ]
-                        ]
-                    ],
-                    [
-                        'type'    => 'NumberSpinner',
-                        'name'    => 'InvertedSignallingDelay',
-                        'caption' => 'Schaltverzögerung',
-                        'minimum' => 0,
-                        'suffix'  => 'Millisekunden'
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'InvertedSignallingChangesOnly',
-                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];
@@ -357,8 +258,10 @@ trait SAHM_Config
         //Trigger list
         $triggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('TriggerList'), true);
+        $amountVariables = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
+            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -371,6 +274,9 @@ trait SAHM_Config
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
+            }
+            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
+                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -402,19 +308,19 @@ trait SAHM_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel4',
+            'name'     => 'Panel3',
             'caption'  => 'Auslöser',
             'items'    => [
                 [
                     'type'     => 'List',
                     'name'     => 'TriggerList',
                     'caption'  => 'Auslöser',
-                    'rowCount' => 15,
+                    'rowCount' => $amountVariables,
                     'add'      => true,
                     'delete'   => true,
                     'columns'  => [
@@ -441,10 +347,17 @@ trait SAHM_Config
                             'add'     => ''
                         ],
                         [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
+                            'width'   => '350px',
+                            'add'     => ''
+                        ],
+                        [
                             'caption' => 'Bezeichnung',
                             'name'    => 'Designation',
                             'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
-                            'width'   => '400px',
+                            'width'   => '300px',
                             'add'     => '',
                             'edit'    => [
                                 'type' => 'ValidationTextBox'
@@ -564,6 +477,15 @@ trait SAHM_Config
                                     ]
                                 ]
                             ]
+                        ],
+                        [
+                            'caption' => 'Signalisierung forcieren',
+                            'name'    => 'ForceSignaling',
+                            'width'   => '200px',
+                            'add'     => false,
+                            'edit'    => [
+                                'type' => 'CheckBox'
+                            ]
                         ]
                     ],
                     'values' => $triggerListValues,
@@ -577,6 +499,23 @@ trait SAHM_Config
                 ]
             ]
         ];
+
+        //Check status
+        $form['elements'][] =
+            [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel4',
+                'caption' => 'Statusprüfung',
+                'items'   => [
+                    [
+                        'type'    => 'NumberSpinner',
+                        'name'    => 'CheckStatusInterval',
+                        'caption' => 'Statusprüfung',
+                        'minimum' => 0,
+                        'suffix'  => 'Sekunden'
+                    ]
+                ]
+            ];
 
         //Command control
         $id = $this->ReadPropertyInteger('CommandControl');
@@ -666,7 +605,7 @@ trait SAHM_Config
 
                 'type'    => 'Button',
                 'caption' => 'Status aktualisieren',
-                'onClick' => self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ');' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
+                'onClick' => self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ', true);' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
             ];
 
         $form['actions'][] =
@@ -689,6 +628,10 @@ trait SAHM_Config
         //Registered references
         $registeredReferences = [];
         $references = $this->GetReferenceList();
+        $amountReferences = count($references);
+        if ($amountReferences == 0) {
+            $amountReferences = 1;
+        }
         foreach ($references as $reference) {
             $name = 'Objekt #' . $reference . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -705,6 +648,7 @@ trait SAHM_Config
         //Registered messages
         $registeredMessages = [];
         $messages = $this->GetMessageList();
+        $amountMessages = count($messages);
         foreach ($messages as $id => $messageID) {
             $name = 'Objekt #' . $id . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -740,7 +684,7 @@ trait SAHM_Config
                     'type'     => 'List',
                     'caption'  => 'Registrierte Referenzen',
                     'name'     => 'RegisteredReferences',
-                    'rowCount' => 10,
+                    'rowCount' => $amountReferences,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'
@@ -772,7 +716,7 @@ trait SAHM_Config
                     'type'     => 'List',
                     'name'     => 'RegisteredMessages',
                     'caption'  => 'Registrierte Nachrichten',
-                    'rowCount' => 10,
+                    'rowCount' => $amountMessages,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'

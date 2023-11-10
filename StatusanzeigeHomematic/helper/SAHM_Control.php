@@ -1,16 +1,16 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper
  * @file          SAHM_Control.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 
@@ -20,6 +20,9 @@ trait SAHM_Control
      * Toggles the module inactive or active.
      *
      * @param bool $State
+     * false =  inactive,
+     * true =   active,
+     *
      * @return void
      * @throws Exception
      */
@@ -35,11 +38,10 @@ trait SAHM_Control
         //Inactive
         if (!$State) {
             $this->SetSignalling(false, true);
-            $this->SetInvertedSignalling(false, true);
         }
         //Active
         else {
-            $this->UpdateState();
+            $this->UpdateState(true);
         }
     }
 

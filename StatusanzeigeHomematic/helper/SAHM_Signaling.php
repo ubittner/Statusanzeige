@@ -1,14 +1,15 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper/
  * @file          SAHM_Signaling.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
@@ -19,43 +20,35 @@ trait SAHM_Signaling
      * Toggles the signalling.
      *
      * @param bool $State
-     * false =  Off
-     * true =   On
+     * false =  off,
+     * true =   on
      *
-     * @param bool $OverrideMaintenance
-     * false =  Check maintenance
-     * true =   Always switch state
+     * @param bool $ForceSignaling
+     * false =  changes only,
+     * true =   always switch state
      *
      * @return bool
-     * false =  An error occurred
-     * true =   Successful
+     * false =  an error occurred,
+     * true =   successful
      *
      * @throws Exception
      */
-    public function ToggleSignalling(bool $State, bool $OverrideMaintenance): bool
+    public function ToggleSignalling(bool $State, bool $ForceSignaling): bool
     {
-        //Off
-        if (!$State) {
-            $result = $this->SetSignalling(false, $OverrideMaintenance);
-            IPS_Sleep(100);
-            $this->SetInvertedSignalling(true, $OverrideMaintenance);
-        }
-        //On
-        else {
-            $this->SetInvertedSignalling(false, $OverrideMaintenance);
-            IPS_Sleep(100);
-            $result = $this->SetSignalling(true, $OverrideMaintenance);
-        }
-        return $result;
+        return $this->SetSignalling($State, $ForceSignaling);
     }
 
     /**
      * Updates the state.
      *
+     * @param bool $ForceSignaling
+     * false =  use configuration,
+     * true =   always toggle
+     *
      * @return void
      * @throws Exception
      */
-    public function UpdateState(): void
+    public function UpdateState(bool $ForceSignaling): void
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         if ($this->CheckMaintenance()) {
@@ -79,14 +72,23 @@ trait SAHM_Signaling
                 $this->SendDebug(__FUNCTION__, 'Abbruch, die Bedingungen wurden nicht erfüllt!', 0);
             } else {
                 $this->SendDebug(__FUNCTION__, 'Die Bedingungen wurden erfüllt.', 0);
+                if ($ForceSignaling) {
+                    $force = true;
+                } else {
+                    $force = false;
+                    if (isset($variable['ForceSignaling'])) {
+                        $force = $variable['ForceSignaling'];
+                    }
+                }
+                $this->SendDebug(__FUNCTION__, 'Signalisierung forcieren: ' . json_encode($force), 0);
                 //Signalling
                 switch ($variable['Signalling']) {
                     case 0: //Off
-                        $this->ToggleSignalling(false, false);
+                        $this->ToggleSignalling(false, $force);
                         break;
 
                     case 1: //On
-                        $this->ToggleSignalling(true, false);
+                        $this->ToggleSignalling(true, $force);
                         break;
 
                 }
@@ -94,26 +96,49 @@ trait SAHM_Signaling
         }
     }
 
-    ########## Private
+    /**
+     * Updates the state from the device.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function UpdateStateFromDevice(): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $id = $this->ReadPropertyInteger('SignallingDeviceState');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
+            $deviceState = GetValueBoolean($id);
+            $this->SendDebug(__FUNCTION__, 'Status: ' . json_encode($deviceState), 0);
+            $actualState = $this->GetValue('Signalling');
+            //Set values, changes only
+            if ($deviceState != $actualState) {
+                $this->SendDebug(__FUNCTION__, 'Neuer Status: ' . json_encode($deviceState), 0);
+                $this->SetValue('Signalling', $deviceState);
+            }
+        }
+    }
+
+    #################### Private
 
     /**
      * Sets the signalling.
      *
      * @param bool $State
-     * false =  Off
-     * true =   On
+     * false =  off,
+     * true =   on
      *
-     * @param bool $OverrideMaintenance
-     * false =  Check maintenance
-     * true =   Always switch state
+     * @param bool $ForceSignaling
+     *  false =  changes only,
+     *  true =   always switch state
      *
      * @return bool
-     * false =  An error occurred
-     * true =   Successful
+     * false =  an error occurred,
+     * true =   successful
      *
      * @throws Exception
      */
-    private function SetSignalling(bool $State, bool $OverrideMaintenance): bool
+    private function SetSignalling(bool $State, bool $ForceSignaling): bool
     {
         $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
         $statusText = 'Aus';
@@ -123,24 +148,22 @@ trait SAHM_Signaling
             $value = 'true';
         }
         $this->SendDebug(__FUNCTION__, 'Status: ' . $statusText, 0);
-        if (!$OverrideMaintenance) {
-            if ($this->CheckMaintenance()) {
-                return false;
-            }
+        if ($this->CheckMaintenance()) {
+            return false;
         }
         $result = false;
         $id = $this->ReadPropertyInteger('SignallingDeviceInstance');
         if ($id > 1 && @IPS_ObjectExists($id)) {
             $result = true;
+            //Set values, changes only
             $actualValue = $this->GetValue('Signalling');
-            $this->SetValue('Signalling', $State);
-            if ($this->ReadPropertyBoolean('SignallingChangesOnly')) {
-                $deviceState = $this->ReadPropertyInteger('SignallingDeviceState');
-                if ($deviceState > 1 && @IPS_ObjectExists($deviceState)) {
-                    if (GetValue($deviceState) == $State) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Status angezeigt!', 0);
-                        return true;
-                    }
+            if ($actualValue != $State) {
+                $this->SetValue('Signalling', $State);
+            }
+            if (!$ForceSignaling) {
+                if ($actualValue == $State) {
+                    $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Status angezeigt!', 0);
+                    return true;
                 }
             }
             //HM-LC-Sw4-WM
@@ -169,84 +192,7 @@ trait SAHM_Signaling
                 if (!$result) {
                     $this->SetValue('Signalling', $actualValue);
                     $this->SendDebug(__FUNCTION__, 'Die Signalisierung konnte für die Statusanzeige ID ' . $id . ' nicht erfolgreich geschaltet werden!', 0);
-                    $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', die invertierte Signalisierung konnte für die Statusanzeige ID  . ' . $id . ' nicht erfolgreich geschaltet werden!', KL_ERROR);
-                }
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Sets the inverted signalling.
-     *
-     * @param bool $State
-     * false =  Off
-     * true =   On
-     *
-     * @param bool $OverrideMaintenance
-     * false =  Check maintenance
-     * true =   Always switch state
-     *
-     * @return bool
-     * false =  An error occurred
-     * true =   Successful
-     *
-     * @throws Exception
-     */
-    private function SetInvertedSignalling(bool $State, bool $OverrideMaintenance): bool
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $statusText = 'Aus';
-        $value = 'false';
-        if ($State) {
-            $statusText = 'An';
-            $value = 'true';
-        }
-        $this->SendDebug(__FUNCTION__, 'Status: ' . $statusText, 0);
-        if (!$OverrideMaintenance) {
-            if ($this->CheckMaintenance()) {
-                return false;
-            }
-        }
-        $result = false;
-        $id = $this->ReadPropertyInteger('InvertedSignallingDeviceInstance');
-        if ($id > 1 && @IPS_ObjectExists($id)) {
-            if ($this->ReadPropertyBoolean('InvertedSignallingChangesOnly')) {
-                $deviceState = $this->ReadPropertyInteger('InvertedSignallingDeviceState');
-                if ($deviceState > 1 && @IPS_ObjectExists($deviceState)) {
-                    if (GetValue($deviceState) == $State) {
-                        $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Status angezeigt!', 0);
-                        return true;
-                    }
-                }
-            }
-            $result = true;
-            //HM-LC-Sw4-WM
-            if ($this->ReadPropertyInteger('InvertedSignallingDeviceType') == 1) {
-                $commandControl = $this->ReadPropertyInteger('CommandControl');
-                if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                    $commands = [];
-                    $commands[] = '@HM_WriteValueBoolean(' . $id . ", 'STATE', " . $value . ');';
-                    $this->SendDebug(__FUNCTION__, 'Befehl: ' . json_encode(json_encode($commands)), 0);
-                    $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
-                    $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
-                    $result = @IPS_RunScriptText($scriptText);
-                } else {
-                    IPS_Sleep($this->ReadPropertyInteger('InvertedSignallingDelay'));
-                    $parameter = @HM_WriteValueBoolean($id, 'STATE', $State);
-                    if (!$parameter) {
-                        $this->SendDebug(__FUNCTION__, 'Bei der invertierten Signalisierung ist ein Fehler aufgetreten!', 0);
-                        $this->SendDebug(__FUNCTION__, 'Der Schaltvorgang wird wiederholt.', 0);
-                        IPS_Sleep($this->ReadPropertyInteger('InvertedSignallingDelay'));
-                        $parameter = @HM_WriteValueBoolean($id, 'STATE', $State);
-                        if (!$parameter) {
-                            $result = false;
-                        }
-                    }
-                }
-                if (!$result) {
-                    $this->SendDebug(__FUNCTION__, 'Die invertierte Signalisierung konnte für die Statusanzeige ID ' . $id . ' nicht erfolgreich geschaltet werden!', 0);
-                    $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', die invertierte Signalisierung konnte für die Statusanzeige ID . ' . $id . ' nicht erfolgreich geschaltet werden!', KL_ERROR);
+                    $this->LogMessage('ID ' . $this->InstanceID . ', ' . __FUNCTION__ . ', die Signalisierung konnte für die Statusanzeige ID  . ' . $id . ' nicht erfolgreich geschaltet werden!', KL_ERROR);
                 }
             }
         }
