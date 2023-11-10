@@ -4,11 +4,12 @@
  * @project       Statusanzeige/StatusanzeigeHomematic
  * @file          module.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
 /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
 
@@ -19,7 +20,7 @@ include_once __DIR__ . '/helper/SAHM_autoload.php';
 class StatusanzeigeHomematic extends IPSModule
 {
     //Helper
-    use SAHM_Config;
+    use SAHM_ConfigurationForm;
     use SAHM_Control;
     use SAHM_Signaling;
     use SAHM_TriggerCondition;
@@ -40,24 +41,32 @@ class StatusanzeigeHomematic extends IPSModule
 
         ########## Properties
 
+        //Info
         $this->RegisterPropertyString('Note', '');
-        $this->RegisterPropertyBoolean('EnableActive', false);
-        $this->RegisterPropertyBoolean('EnableSignalling', true);
+
+        //Signaling device
         $this->RegisterPropertyInteger('SignallingDeviceType', 0);
         $this->RegisterPropertyInteger('SignallingDeviceInstance', 0);
         $this->RegisterPropertyInteger('SignallingDeviceState', 0);
         $this->RegisterPropertyInteger('SignallingDelay', 0);
-        $this->RegisterPropertyBoolean('SignallingChangesOnly', false);
-        $this->RegisterPropertyInteger('InvertedSignallingDeviceType', 0);
-        $this->RegisterPropertyInteger('InvertedSignallingDeviceInstance', 0);
-        $this->RegisterPropertyInteger('InvertedSignallingDeviceState', 0);
-        $this->RegisterPropertyInteger('InvertedSignallingDelay', 0);
-        $this->RegisterPropertyBoolean('InvertedSignallingChangesOnly', false);
+
+        //Trigger  list
         $this->RegisterPropertyString('TriggerList', '[]');
+
+        //Check status
+        $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
+
+        //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
+
+        //Deactivation
         $this->RegisterPropertyBoolean('UseAutomaticDeactivation', false);
         $this->RegisterPropertyString('AutomaticDeactivationStartTime', '{"hour":22,"minute":0,"second":0}');
         $this->RegisterPropertyString('AutomaticDeactivationEndTime', '{"hour":6,"minute":0,"second":0}');
+
+        //Visualisation
+        $this->RegisterPropertyBoolean('EnableActive', false);
+        $this->RegisterPropertyBoolean('EnableSignalling', true);
 
         ########## Variables
 
@@ -79,6 +88,7 @@ class StatusanzeigeHomematic extends IPSModule
 
         ########## Timers
 
+        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ', true);');
         $this->RegisterTimer('StartAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StartAutomaticDeactivation(' . $this->InstanceID . ');');
         $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ',);');
     }
@@ -113,9 +123,7 @@ class StatusanzeigeHomematic extends IPSModule
         //Register references and update messages
         $names = [];
         $names[] = ['propertyName' => 'SignallingDeviceInstance', 'useUpdate' => false];
-        $names[] = ['propertyName' => 'SignallingDeviceState', 'useUpdate' => false];
-        $names[] = ['propertyName' => 'InvertedSignallingDeviceInstance', 'useUpdate' => false];
-        $names[] = ['propertyName' => 'InvertedSignallingDeviceState', 'useUpdate' => false];
+        $names[] = ['propertyName' => 'SignallingDeviceState', 'useUpdate' => true];
         $names[] = ['propertyName' => 'CommandControl', 'useUpdate' => false];
         foreach ($names as $name) {
             $id = $this->ReadPropertyInteger($name['propertyName']);
@@ -169,9 +177,34 @@ class StatusanzeigeHomematic extends IPSModule
         IPS_SetHidden($this->GetIDForIdent('Signalling'), !$this->ReadPropertyBoolean('EnableSignalling'));
 
         $this->SetAutomaticDeactivationTimer();
-        $this->CheckAutomaticDeactivationTimer();
 
-        $this->UpdateState();
+        //Status
+        if (!$this->CheckAutomaticDeactivationTimer()) {
+            $update = true;
+            $commandControl = $this->ReadPropertyInteger('CommandControl');
+            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                $instance = @IPS_GetInstance($commandControl);
+                if ($instance['InstanceStatus'] != 102) {
+                    $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
+                    $update = false;
+                }
+            }
+            if ($commandControl > 1 && @!IPS_ObjectExists($commandControl)) {
+                $update = false;
+            }
+            if ($update) {
+                $this->UpdateState(true);
+            }
+        } else {
+            $this->ToggleActive(false);
+        }
+
+        //Set check status timer
+        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
+        if ($milliseconds > 0) {
+            $milliseconds = $milliseconds * 1000;
+        }
+        $this->SetTimerInterval('CheckStatus', $milliseconds);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -191,17 +224,20 @@ class StatusanzeigeHomematic extends IPSModule
                 //$Data[4] = timestamp value changed
                 //$Data[5] = timestamp last value
 
+                $trigger = true;
+                if ($SenderID == $this->ReadPropertyInteger('SignallingDeviceState')) {
+                    $trigger = false;
+                    $this->UpdateStateFromDevice();
+                }
+
                 if ($this->CheckMaintenance()) {
                     return;
                 }
 
                 //Check trigger conditions
-                $valueChanged = 'false';
-                if ($Data[1]) {
-                    $valueChanged = 'true';
+                if ($trigger) {
+                    $this->CheckTriggerConditions($SenderID, $Data[1], false);
                 }
-                $scriptText = self::MODULE_PREFIX . '_CheckTriggerConditions(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
-                @IPS_RunScriptText($scriptText);
                 break;
 
         }
@@ -236,7 +272,7 @@ class StatusanzeigeHomematic extends IPSModule
                 break;
 
             case 'Signalling':
-                $this->ToggleSignalling($Value, false);
+                $this->ToggleSignalling($Value, true);
                 break;
 
         }
