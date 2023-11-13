@@ -55,7 +55,7 @@ trait SAHM_Signaling
             return;
         }
         $variables = json_decode($this->ReadPropertyString('TriggerList'), true);
-        foreach ($variables as $variable) {
+        foreach ($variables as $key => $variable) {
             if (!$variable['Use']) {
                 continue;
             }
@@ -68,6 +68,7 @@ trait SAHM_Signaling
             if (!IPS_IsConditionPassing($variable['SecondaryCondition'])) {
                 $execute = false;
             }
+            $this->SendDebug(__FUNCTION__, 'Listenschlüssel: ' . $key, 0);
             if (!$execute) {
                 $this->SendDebug(__FUNCTION__, 'Abbruch, die Bedingungen wurden nicht erfüllt!', 0);
             } else {
