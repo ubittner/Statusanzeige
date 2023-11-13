@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @project       Statusanzeige/Statusanzeige
+ * @project       Statusanzeige/Statusanzeige/
  * @file          module.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
@@ -19,7 +19,7 @@ include_once __DIR__ . '/helper/SA_autoload.php';
 class Statusanzeige extends IPSModule
 {
     //Helper
-    use SA_Config;
+    use SA_ConfigurationForm;
     use SA_Control;
     use SA_Signaling;
     use SA_TriggerCondition;
@@ -38,20 +38,34 @@ class Statusanzeige extends IPSModule
 
         ########## Properties
 
+        //Info
         $this->RegisterPropertyString('Note', '');
-        $this->RegisterPropertyBoolean('EnableActive', false);
-        $this->RegisterPropertyBoolean('EnableSignalling', true);
+
+        //Signaling
         $this->RegisterPropertyInteger('SignallingVariable', 0);
         $this->RegisterPropertyInteger('SignallingDelay', 0);
-        $this->RegisterPropertyBoolean('SignallingChangesOnly', false);
+
+        //Inverted signaling
         $this->RegisterPropertyInteger('InvertedSignallingVariable', 0);
         $this->RegisterPropertyInteger('InvertedSignallingDelay', 0);
-        $this->RegisterPropertyBoolean('InvertedSignallingChangesOnly', false);
+
+        //Trigger list
         $this->RegisterPropertyString('TriggerList', '[]');
+
+        //Check status
+        $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
+
+        //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
+
+        //Automatic deactivation
         $this->RegisterPropertyBoolean('UseAutomaticDeactivation', false);
         $this->RegisterPropertyString('AutomaticDeactivationStartTime', '{"hour":22,"minute":0,"second":0}');
         $this->RegisterPropertyString('AutomaticDeactivationEndTime', '{"hour":6,"minute":0,"second":0}');
+
+        //Visualisation
+        $this->RegisterPropertyBoolean('EnableActive', false);
+        $this->RegisterPropertyBoolean('EnableSignalling', true);
 
         ########## Variables
 
@@ -73,6 +87,7 @@ class Statusanzeige extends IPSModule
 
         ########## Timers
 
+        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ', true);');
         $this->RegisterTimer('StartAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StartAutomaticDeactivation(' . $this->InstanceID . ');');
         $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ',);');
     }
@@ -106,7 +121,7 @@ class Statusanzeige extends IPSModule
 
         //Register references and update messages
         $names = [];
-        $names[] = ['propertyName' => 'SignallingVariable', 'useUpdate' => false];
+        $names[] = ['propertyName' => 'SignallingVariable', 'useUpdate' => true];
         $names[] = ['propertyName' => 'InvertedSignallingVariable', 'useUpdate' => false];
         $names[] = ['propertyName' => 'CommandControl', 'useUpdate' => false];
         foreach ($names as $name) {
@@ -161,9 +176,34 @@ class Statusanzeige extends IPSModule
         IPS_SetHidden($this->GetIDForIdent('Signalling'), !$this->ReadPropertyBoolean('EnableSignalling'));
 
         $this->SetAutomaticDeactivationTimer();
-        $this->CheckAutomaticDeactivationTimer();
 
-        $this->UpdateState();
+        //Status
+        if (!$this->CheckAutomaticDeactivationTimer()) {
+            $update = true;
+            $commandControl = $this->ReadPropertyInteger('CommandControl');
+            if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                $instance = @IPS_GetInstance($commandControl);
+                if ($instance['InstanceStatus'] != 102) {
+                    $this->LogMessage('Die Ablaufsteuerung ist noch nicht bereit!', KL_WARNING);
+                    $update = false;
+                }
+            }
+            if ($commandControl > 1 && @!IPS_ObjectExists($commandControl)) {
+                $update = false;
+            }
+            if ($update) {
+                $this->UpdateState(true);
+            }
+        } else {
+            $this->ToggleActive(false);
+        }
+
+        //Set check status timer
+        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
+        if ($milliseconds > 0) {
+            $milliseconds = $milliseconds * 1000;
+        }
+        $this->SetTimerInterval('CheckStatus', $milliseconds);
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -183,17 +223,20 @@ class Statusanzeige extends IPSModule
                 //$Data[4] = timestamp value changed
                 //$Data[5] = timestamp last value
 
+                $trigger = true;
+                if ($SenderID == $this->ReadPropertyInteger('SignallingVariable')) {
+                    $trigger = false;
+                    $this->UpdateStateFromTargetSignalingVariable();
+                }
+
                 if ($this->CheckMaintenance()) {
                     return;
                 }
 
                 //Check trigger conditions
-                $valueChanged = 'false';
-                if ($Data[1]) {
-                    $valueChanged = 'true';
+                if ($trigger) {
+                    $this->CheckTriggerConditions($SenderID, $Data[1], false);
                 }
-                $scriptText = self::MODULE_PREFIX . '_CheckTriggerConditions(' . $this->InstanceID . ', ' . $SenderID . ', ' . $valueChanged . ');';
-                @IPS_RunScriptText($scriptText);
                 break;
 
         }
@@ -228,7 +271,7 @@ class Statusanzeige extends IPSModule
                 break;
 
             case 'Signalling':
-                $this->ToggleSignalling($Value, false);
+                $this->ToggleSignalling($Value, true);
                 break;
 
         }

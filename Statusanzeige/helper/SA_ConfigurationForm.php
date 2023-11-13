@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @project       Statusanzeige/Statusanzeige
- * @file          SA_Config.php
+ * @project       Statusanzeige/Statusanzeige/helper
+ * @file          SA_ConfigurationForm.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
@@ -13,7 +13,7 @@
 
 declare(strict_types=1);
 
-trait SA_Config
+trait SA_ConfigurationForm
 {
     /**
      * Reloads the configuration form.
@@ -35,7 +35,7 @@ trait SA_Config
      */
     public function ExpandExpansionPanels(bool $State): void
     {
-        for ($i = 1; $i <= 7; $i++) {
+        for ($i = 1; $i <= 8; $i++) {
             $this->UpdateFormField('Panel' . $i, 'expanded', $State);
         }
     }
@@ -199,11 +199,6 @@ trait SA_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'SignallingChangesOnly',
-                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];
@@ -246,11 +241,6 @@ trait SA_Config
                         'caption' => 'Schaltverzögerung',
                         'minimum' => 0,
                         'suffix'  => 'Millisekunden'
-                    ],
-                    [
-                        'type'    => 'CheckBox',
-                        'name'    => 'InvertedSignallingChangesOnly',
-                        'caption' => 'Nur Änderungen schalten',
                     ]
                 ]
             ];
@@ -258,8 +248,10 @@ trait SA_Config
         //Trigger list
         $triggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('TriggerList'), true);
+        $amountVariables = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
+            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -272,6 +264,9 @@ trait SA_Config
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
+            }
+            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
+                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -303,7 +298,7 @@ trait SA_Config
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'rowColor' => $rowColor];
+            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
         }
 
         $form['elements'][] = [
@@ -315,7 +310,7 @@ trait SA_Config
                     'type'     => 'List',
                     'name'     => 'TriggerList',
                     'caption'  => 'Auslöser',
-                    'rowCount' => 15,
+                    'rowCount' => $amountVariables,
                     'add'      => true,
                     'delete'   => true,
                     'columns'  => [
@@ -342,10 +337,17 @@ trait SA_Config
                             'add'     => ''
                         ],
                         [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
+                            'width'   => '350px',
+                            'add'     => ''
+                        ],
+                        [
                             'caption' => 'Bezeichnung',
                             'name'    => 'Designation',
                             'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
-                            'width'   => '400px',
+                            'width'   => '300px',
                             'add'     => '',
                             'edit'    => [
                                 'type' => 'ValidationTextBox'
@@ -465,6 +467,15 @@ trait SA_Config
                                     ]
                                 ]
                             ]
+                        ],
+                        [
+                            'caption' => 'Signalisierung forcieren',
+                            'name'    => 'ForceSignaling',
+                            'width'   => '200px',
+                            'add'     => true,
+                            'edit'    => [
+                                'type' => 'CheckBox'
+                            ]
                         ]
                     ],
                     'values' => $triggerListValues,
@@ -479,6 +490,23 @@ trait SA_Config
             ]
         ];
 
+        //Check status
+        $form['elements'][] =
+            [
+                'type'    => 'ExpansionPanel',
+                'name'    => 'Panel5',
+                'caption' => 'Statusprüfung',
+                'items'   => [
+                    [
+                        'type'    => 'NumberSpinner',
+                        'name'    => 'CheckStatusInterval',
+                        'caption' => 'Statusprüfung',
+                        'minimum' => 0,
+                        'suffix'  => 'Sekunden'
+                    ]
+                ]
+            ];
+
         //Command control
         $id = $this->ReadPropertyInteger('CommandControl');
         $enableButton = false;
@@ -487,7 +515,7 @@ trait SA_Config
         }
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel5',
+            'name'     => 'Panel6',
             'caption'  => 'Ablaufsteuerung',
             'items'    => [
                 [
@@ -520,7 +548,7 @@ trait SA_Config
 
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel6',
+            'name'     => 'Panel7',
             'caption'  => 'Deaktivierung',
             'items'    => [
                 [
@@ -544,7 +572,7 @@ trait SA_Config
         //Visualisation
         $form['elements'][] = [
             'type'     => 'ExpansionPanel',
-            'name'     => 'Panel7',
+            'name'     => 'Panel8',
             'caption'  => 'Visualisierung',
             'items'    => [
                 [
@@ -566,7 +594,7 @@ trait SA_Config
             [
                 'type'    => 'Button',
                 'caption' => 'Status aktualisieren',
-                'onClick' => self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ');' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
+                'onClick' => self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ', true);' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
             ];
 
         $form['actions'][] =
@@ -590,6 +618,10 @@ trait SA_Config
         //Registered references
         $registeredReferences = [];
         $references = $this->GetReferenceList();
+        $amountReferences = count($references);
+        if ($amountReferences == 0) {
+            $amountReferences = 1;
+        }
         foreach ($references as $reference) {
             $name = 'Objekt #' . $reference . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -606,6 +638,7 @@ trait SA_Config
         //Registered messages
         $registeredMessages = [];
         $messages = $this->GetMessageList();
+        $amountMessages = count($messages);
         foreach ($messages as $id => $messageID) {
             $name = 'Objekt #' . $id . ' existiert nicht';
             $rowColor = '#FFC0C0'; //red
@@ -641,7 +674,7 @@ trait SA_Config
                     'type'     => 'List',
                     'caption'  => 'Registrierte Referenzen',
                     'name'     => 'RegisteredReferences',
-                    'rowCount' => 10,
+                    'rowCount' => $amountReferences,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'
@@ -677,7 +710,7 @@ trait SA_Config
                     'type'     => 'List',
                     'name'     => 'RegisteredMessages',
                     'caption'  => 'Registrierte Nachrichten',
-                    'rowCount' => 10,
+                    'rowCount' => $amountMessages,
                     'sort'     => [
                         'column'    => 'ObjectID',
                         'direction' => 'ascending'
