@@ -30,7 +30,6 @@ class StatusanzeigeHomematic extends IPSModule
     private const MODULE_GUID = '{17C9B00D-3C66-2B99-7F83-604DA32C91E6}';
     private const MODULE_NAME = 'Statusanzeige Homematic';
     private const MODULE_PREFIX = 'SAHM';
-    private const MODULE_VERSION = '7.0-1, 08.09.2022';
     private const ABLAUFSTEUERUNG_MODULE_GUID = '{0559B287-1052-A73E-B834-EBD9B62CB938}';
     private const ABLAUFSTEUERUNG_MODULE_PREFIX = 'AST';
 
