@@ -410,7 +410,7 @@ trait SAHMIP_Signaling
                             //Revert brightness
                             $this->SetValue('UpperLightUnitBrightness', $actualBrightness);
                         }
-                       break;
+                        break;
                 }
             }
         }
