@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic/helper
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper/
  * @file          SAHM_Control.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner

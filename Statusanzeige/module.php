@@ -9,6 +9,7 @@
  */
 
 /** @noinspection PhpUnhandledExceptionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 /** @noinspection PhpUnused */
 
@@ -52,7 +53,8 @@ class Statusanzeige extends IPSModule
         //Trigger list
         $this->RegisterPropertyString('TriggerList', '[]');
 
-        //Check status
+        //Automatic status update
+        $this->RegisterPropertyBoolean('AutomaticStatusUpdate', false);
         $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
 
         //Command control
@@ -198,10 +200,10 @@ class Statusanzeige extends IPSModule
             $this->ToggleActive(false);
         }
 
-        //Set check status timer
-        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
-        if ($milliseconds > 0) {
-            $milliseconds = $milliseconds * 1000;
+        //Set automatic status update timer
+        $milliseconds = 0;
+        if ($this->ReadPropertyBoolean('AutomaticStatusUpdate')) {
+            $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval') * 1000;
         }
         $this->SetTimerInterval('CheckStatus', $milliseconds);
     }

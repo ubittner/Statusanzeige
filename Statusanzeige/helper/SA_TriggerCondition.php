@@ -1,16 +1,15 @@
 <?php
 
 /**
- * @project       Statusanzeige/Statusanzeige/helper
+ * @project       Statusanzeige/Statusanzeige/helper/
  * @file          SA_TriggerCondition.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
-/** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 

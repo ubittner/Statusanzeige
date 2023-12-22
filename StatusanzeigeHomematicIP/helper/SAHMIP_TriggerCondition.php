@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_TriggerCondition.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
@@ -9,7 +9,6 @@
  */
 
 /** @noinspection PhpUnusedPrivateMethodInspection */
-/** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
@@ -126,7 +125,7 @@ trait SAHMIP_TriggerCondition
                     } else {
                         $force = $variable['ForceSignaling'];
                     }
-                    $this->SendDebug(__FUNCTION__, 'Signalisierung forcieren: ' . json_encode($force), 0);
+                    $this->SendDebug(__FUNCTION__, 'Signalisierung erzwingen: ' . json_encode($force), 0);
                     //Color
                     $this->SetColor($LightUnit, $variable['Color'], $force);
                     $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit . ', Farbe: ' . $variable['Color'], 0);

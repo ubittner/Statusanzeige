@@ -1,14 +1,14 @@
 <?php
 
 /**
- * @project       Statusanzeige/Statusanzeige/helper
+ * @project       Statusanzeige/Statusanzeige/helper/
  * @file          SA_ConfigurationForm.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
-/** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
 declare(strict_types=1);
@@ -57,6 +57,17 @@ trait SA_ConfigurationForm
         $this->UpdateFormField($Field, 'caption', $Caption);
         $this->UpdateFormField($Field, 'visible', $state);
         $this->UpdateFormField($Field, 'objectID', $ObjectID);
+    }
+
+    public function ModifyActualVariableStatesConfigurationButton(string $Field, int $VariableID): void
+    {
+        $state = false;
+        if ($VariableID > 1 && @IPS_ObjectExists($VariableID)) {
+            $state = true;
+        }
+        $this->UpdateFormField($Field, 'caption', 'ID ' . $VariableID . ' Bearbeiten');
+        $this->UpdateFormField($Field, 'visible', $state);
+        $this->UpdateFormField($Field, 'objectID', $VariableID);
     }
 
     /**
@@ -248,10 +259,13 @@ trait SA_ConfigurationForm
         //Trigger list
         $triggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('TriggerList'), true);
+        $amountRows = count($variables) + 1;
+        if ($amountRows == 1) {
+            $amountRows = 3;
+        }
         $amountVariables = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
-            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -264,9 +278,6 @@ trait SA_ConfigurationForm
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
-            }
-            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
-                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -284,21 +295,14 @@ trait SA_ConfigurationForm
                     }
                 }
             }
-            $stateName = 'fehlerhaft';
             $rowColor = '#FFC0C0'; //red
             if ($conditions) {
-                $stateName = 'Bedingung nicht erfüllt!';
-                $rowColor = '#C0C0FF'; //violett
-                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
-                    $stateName = 'Bedingung erfüllt';
-                    $rowColor = '#C0FFC0'; //light green
-                }
+                $rowColor = '#C0FFC0'; //light green
                 if (!$variable['Use']) {
-                    $stateName = 'Deaktiviert';
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $triggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
+            $triggerListValues[] = ['rowColor' => $rowColor];
         }
 
         $form['elements'][] = [
@@ -307,10 +311,72 @@ trait SA_ConfigurationForm
             'caption'  => 'Auslöser',
             'items'    => [
                 [
+                    'type'    => 'PopupButton',
+                    'caption' => 'Aktueller Status',
+                    'popup'   => [
+                        'caption' => 'Aktueller Status',
+                        'items'   => [
+                            [
+                                'type'     => 'List',
+                                'name'     => 'ActualVariableStateList',
+                                'caption'  => 'Variablen',
+                                'add'      => false,
+                                'visible'  => false,
+                                'rowCount' => 1,
+                                'sort'     => [
+                                    'column'    => 'ActualStatus',
+                                    'direction' => 'ascending'
+                                ],
+                                'columns' => [
+                                    [
+                                        'name'    => 'ActualStatus',
+                                        'caption' => 'Aktueller Status',
+                                        'width'   => '250px',
+                                        'save'    => false
+                                    ],
+                                    [
+                                        'name'    => 'SensorID',
+                                        'caption' => 'ID',
+                                        'width'   => '80px',
+                                        'onClick' => self::MODULE_PREFIX . '_ModifyActualVariableStatesConfigurationButton($id, "ActualVariableStateConfigurationButton", $ActualVariableStateList["SensorID"]);',
+                                        'save'    => false
+                                    ],
+                                    [
+                                        'name'    => 'Designation',
+                                        'caption' => 'Bezeichnung',
+                                        'width'   => '400px',
+                                        'save'    => false
+                                    ],
+                                    [
+                                        'name'    => 'Signalling',
+                                        'caption' => 'Statusanzeige',
+                                        'width'   => '200px',
+                                        'save'    => false
+                                    ],
+                                    [
+                                        'name'    => 'LastUpdate',
+                                        'caption' => 'Letzte Aktualisierung',
+                                        'width'   => '200px',
+                                        'save'    => false
+                                    ]
+                                ]
+                            ],
+                            [
+                                'type'     => 'OpenObjectButton',
+                                'name'     => 'ActualVariableStateConfigurationButton',
+                                'caption'  => 'Bearbeiten',
+                                'visible'  => false,
+                                'objectID' => 0
+                            ]
+                        ]
+                    ],
+                    'onClick' => self::MODULE_PREFIX . '_GetActualVariableStates($id);'
+                ],
+                [
                     'type'     => 'List',
                     'name'     => 'TriggerList',
                     'caption'  => 'Auslöser',
-                    'rowCount' => $amountVariables,
+                    'rowCount' => $amountRows,
                     'add'      => true,
                     'delete'   => true,
                     'columns'  => [
@@ -324,26 +390,6 @@ trait SA_ConfigurationForm
                             ]
                         ],
                         [
-                            'name'    => 'ActualStatus',
-                            'caption' => 'Aktueller Status',
-                            'width'   => '200px',
-                            'add'     => ''
-                        ],
-                        [
-                            'caption' => 'ID',
-                            'name'    => 'SensorID',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
-                            'width'   => '100px',
-                            'add'     => ''
-                        ],
-                        [
-                            'caption' => 'Objektbaum',
-                            'name'    => 'VariableLocation',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
-                            'width'   => '350px',
-                            'add'     => ''
-                        ],
-                        [
                             'caption' => 'Bezeichnung',
                             'name'    => 'Designation',
                             'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "TriggerListConfigurationButton", $TriggerList["PrimaryCondition"]);',
@@ -351,28 +397,6 @@ trait SA_ConfigurationForm
                             'add'     => '',
                             'edit'    => [
                                 'type' => 'ValidationTextBox'
-                            ]
-                        ],
-                        [
-                            'caption' => ' ',
-                            'name'    => 'SpacerPrimaryCondition',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type' => 'Label'
-                            ]
-                        ],
-                        [
-                            'caption' => 'Bedingung:',
-                            'name'    => 'LabelPrimaryCondition',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type'   => 'Label',
-                                'italic' => true,
-                                'bold'   => true
                             ]
                         ],
                         [
@@ -385,68 +409,22 @@ trait SA_ConfigurationForm
                             ]
                         ],
                         [
-                            'caption' => ' ',
+                            'caption' => 'Primäre Bedingung',
                             'name'    => 'PrimaryCondition',
-                            'width'   => '200px',
+                            'width'   => '1000px',
                             'add'     => '',
-                            'visible' => false,
                             'edit'    => [
                                 'type' => 'SelectCondition'
                             ]
                         ],
                         [
-                            'caption' => ' ',
-                            'name'    => 'SpacerSecondaryCondition',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type' => 'Label'
-                            ]
-                        ],
-                        [
-                            'caption' => 'Weitere Bedingung(en):',
-                            'name'    => 'LabelSecondaryCondition',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type'   => 'Label',
-                                'italic' => true,
-                                'bold'   => true
-                            ]
-                        ],
-                        [
-                            'caption' => ' ',
+                            'caption' => 'Weitere Bedingungen',
                             'name'    => 'SecondaryCondition',
-                            'width'   => '200px',
+                            'width'   => '1000px',
                             'add'     => '',
-                            'visible' => false,
                             'edit'    => [
                                 'type'  => 'SelectCondition',
                                 'multi' => true
-                            ]
-                        ],
-                        [
-                            'caption' => ' ',
-                            'name'    => 'SpacerSignaling',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type' => 'Label'
-                            ]
-                        ],
-                        [
-                            'caption' => 'Signalisierung:',
-                            'name'    => 'LabelSignaling',
-                            'width'   => '200px',
-                            'add'     => '',
-                            'visible' => false,
-                            'edit'    => [
-                                'type'   => 'Label',
-                                'italic' => true,
-                                'bold'   => true
                             ]
                         ],
                         [
@@ -469,7 +447,7 @@ trait SA_ConfigurationForm
                             ]
                         ],
                         [
-                            'caption' => 'Signalisierung forcieren',
+                            'caption' => 'Signalisierung erzwingen',
                             'name'    => 'ForceSignaling',
                             'width'   => '200px',
                             'add'     => true,
@@ -479,6 +457,10 @@ trait SA_ConfigurationForm
                         ]
                     ],
                     'values' => $triggerListValues,
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Anzahl Auslöser: ' . $amountVariables
                 ],
                 [
                     'type'     => 'OpenObjectButton',
@@ -495,12 +477,17 @@ trait SA_ConfigurationForm
             [
                 'type'    => 'ExpansionPanel',
                 'name'    => 'Panel5',
-                'caption' => 'Statusprüfung',
+                'caption' => 'Aktualisierung',
                 'items'   => [
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'AutomaticStatusUpdate',
+                        'caption' => 'Automatische Aktualisierung'
+                    ],
                     [
                         'type'    => 'NumberSpinner',
                         'name'    => 'CheckStatusInterval',
-                        'caption' => 'Statusprüfung',
+                        'caption' => 'Intervall',
                         'minimum' => 0,
                         'suffix'  => 'Sekunden'
                     ]
@@ -590,19 +577,6 @@ trait SA_ConfigurationForm
 
         ########## Actions
 
-        $form['actions'][] =
-            [
-                'type'    => 'Button',
-                'caption' => 'Status aktualisieren',
-                'onClick' => self::MODULE_PREFIX . '_UpdateState(' . $this->InstanceID . ', true);' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
-            ];
-
-        $form['actions'][] =
-            [
-                'type'    => 'Label',
-                'caption' => ' '
-            ];
-
         //Test center
         $form['actions'][] =
             [
@@ -620,30 +594,38 @@ trait SA_ConfigurationForm
         $references = $this->GetReferenceList();
         $amountReferences = count($references);
         if ($amountReferences == 0) {
-            $amountReferences = 1;
+            $amountReferences = 3;
         }
         foreach ($references as $reference) {
             $name = 'Objekt #' . $reference . ' existiert nicht';
+            $location = '';
             $rowColor = '#FFC0C0'; //red
             if (@IPS_ObjectExists($reference)) {
                 $name = IPS_GetName($reference);
+                $location = IPS_GetLocation($reference);
                 $rowColor = '#C0FFC0'; //light green
             }
             $registeredReferences[] = [
-                'ObjectID' => $reference,
-                'Name'     => $name,
-                'rowColor' => $rowColor];
+                'ObjectID'         => $reference,
+                'Name'             => $name,
+                'VariableLocation' => $location,
+                'rowColor'         => $rowColor];
         }
 
         //Registered messages
         $registeredMessages = [];
         $messages = $this->GetMessageList();
         $amountMessages = count($messages);
+        if ($amountMessages == 0) {
+            $amountMessages = 3;
+        }
         foreach ($messages as $id => $messageID) {
             $name = 'Objekt #' . $id . ' existiert nicht';
+            $location = '';
             $rowColor = '#FFC0C0'; //red
             if (@IPS_ObjectExists($id)) {
                 $name = IPS_GetName($id);
+                $location = IPS_GetLocation($id);
                 $rowColor = '#C0FFC0'; //light green
             }
             switch ($messageID) {
@@ -661,18 +643,25 @@ trait SA_ConfigurationForm
             $registeredMessages[] = [
                 'ObjectID'           => $id,
                 'Name'               => $name,
+                'VariableLocation'   => $location,
                 'MessageID'          => $messageID,
                 'MessageDescription' => $messageDescription,
                 'rowColor'           => $rowColor];
         }
 
+        //Developer area
         $form['actions'][] = [
             'type'    => 'ExpansionPanel',
             'caption' => 'Entwicklerbereich',
             'items'   => [
                 [
+                    'type'    => 'Label',
+                    'caption' => 'Registrierte Referenzen',
+                    'bold'    => true,
+                    'italic'  => true
+                ],
+                [
                     'type'     => 'List',
-                    'caption'  => 'Registrierte Referenzen',
                     'name'     => 'RegisteredReferences',
                     'rowCount' => $amountReferences,
                     'sort'     => [
@@ -684,13 +673,17 @@ trait SA_ConfigurationForm
                             'caption' => 'ID',
                             'name'    => 'ObjectID',
                             'width'   => '150px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " bearbeiten", $RegisteredReferences["ObjectID"]);'
                         ],
                         [
                             'caption' => 'Name',
                             'name'    => 'Name',
                             'width'   => '300px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'width'   => '700px'
                         ]
                     ],
                     'values' => $registeredReferences
@@ -698,7 +691,7 @@ trait SA_ConfigurationForm
                 [
                     'type'     => 'OpenObjectButton',
                     'name'     => 'RegisteredReferencesConfigurationButton',
-                    'caption'  => 'Aufrufen',
+                    'caption'  => 'Bearbeiten',
                     'visible'  => false,
                     'objectID' => 0
                 ],
@@ -707,9 +700,14 @@ trait SA_ConfigurationForm
                     'caption' => ' '
                 ],
                 [
+                    'type'    => 'Label',
+                    'caption' => 'Registrierte Nachrichten',
+                    'bold'    => true,
+                    'italic'  => true
+                ],
+                [
                     'type'     => 'List',
                     'name'     => 'RegisteredMessages',
-                    'caption'  => 'Registrierte Nachrichten',
                     'rowCount' => $amountMessages,
                     'sort'     => [
                         'column'    => 'ObjectID',
@@ -720,13 +718,17 @@ trait SA_ConfigurationForm
                             'caption' => 'ID',
                             'name'    => 'ObjectID',
                             'width'   => '150px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " bearbeiten", $RegisteredMessages["ObjectID"]);'
                         ],
                         [
                             'caption' => 'Name',
                             'name'    => 'Name',
                             'width'   => '300px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'width'   => '700px'
                         ],
                         [
                             'caption' => 'Nachrichten ID',
@@ -744,7 +746,7 @@ trait SA_ConfigurationForm
                 [
                     'type'     => 'OpenObjectButton',
                     'name'     => 'RegisteredMessagesConfigurationButton',
-                    'caption'  => 'Aufrufen',
+                    'caption'  => 'Bearbeiten',
                     'visible'  => false,
                     'objectID' => 0
                 ]

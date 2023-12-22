@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/
  * @file          module.php
  * @author        Ulrich Bittner
  * @copyright     2022 Ulrich Bittner
@@ -61,7 +61,8 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyString('LowerLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateUpperLightUnit', false);
 
-        //Check status
+        //Automatic status update
+        $this->RegisterPropertyBoolean('AutomaticStatusUpdate', false);
         $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
 
         //Command control
@@ -269,10 +270,10 @@ class StatusanzeigeHomematicIP extends IPSModule
             $this->ToggleActive(false);
         }
 
-        //Set check status timer
-        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
-        if ($milliseconds > 0) {
-            $milliseconds = $milliseconds * 1000;
+        //Set automatic status update timer
+        $milliseconds = 0;
+        if ($this->ReadPropertyBoolean('AutomaticStatusUpdate')) {
+            $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval') * 1000;
         }
         $this->SetTimerInterval('CheckStatus', $milliseconds);
     }

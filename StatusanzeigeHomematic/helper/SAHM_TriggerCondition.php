@@ -1,14 +1,13 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic/helper
+ * @project       Statusanzeige/StatusanzeigeHomematic/helper/
  * @file          SAHM_TriggerCondition.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
-/** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
@@ -80,7 +79,7 @@ trait SAHM_TriggerCondition
                                         $force = $variable['ForceSignaling'];
                                     }
                                 }
-                                $this->SendDebug(__FUNCTION__, 'Signalisierung forcieren: ' . json_encode($force), 0);
+                                $this->SendDebug(__FUNCTION__, 'Signalisierung erzwingen: ' . json_encode($force), 0);
                                 //Signalling
                                 switch ($variable['Signalling']) {
                                     case 0: //Off
