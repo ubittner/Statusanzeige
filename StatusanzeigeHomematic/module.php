@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematic
+ * @project       Statusanzeige/StatusanzeigeHomematic/
  * @file          module.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
@@ -52,7 +52,8 @@ class StatusanzeigeHomematic extends IPSModule
         //Trigger  list
         $this->RegisterPropertyString('TriggerList', '[]');
 
-        //Check status
+        //Automatic status update
+        $this->RegisterPropertyBoolean('AutomaticStatusUpdate', false);
         $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
 
         //Command control
@@ -198,10 +199,10 @@ class StatusanzeigeHomematic extends IPSModule
             $this->ToggleActive(false);
         }
 
-        //Set check status timer
-        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
-        if ($milliseconds > 0) {
-            $milliseconds = $milliseconds * 1000;
+        //Set automatic status update timer
+        $milliseconds = 0;
+        if ($this->ReadPropertyBoolean('AutomaticStatusUpdate')) {
+            $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval') * 1000;
         }
         $this->SetTimerInterval('CheckStatus', $milliseconds);
     }

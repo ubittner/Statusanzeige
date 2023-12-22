@@ -1,14 +1,13 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_ConfigurationForm.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
-/** @noinspection PhpUndefinedFunctionInspection */
 /** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
 
@@ -60,6 +59,17 @@ trait SAHMIP_ConfigurationForm
         $this->UpdateFormField($Field, 'caption', $Caption);
         $this->UpdateFormField($Field, 'visible', $state);
         $this->UpdateFormField($Field, 'objectID', $ObjectID);
+    }
+
+    public function ModifyActualVariableStatesConfigurationButton(string $Field, int $VariableID): void
+    {
+        $state = false;
+        if ($VariableID > 1 && @IPS_ObjectExists($VariableID)) {
+            $state = true;
+        }
+        $this->UpdateFormField($Field, 'caption', 'ID ' . $VariableID . ' Bearbeiten');
+        $this->UpdateFormField($Field, 'visible', $state);
+        $this->UpdateFormField($Field, 'objectID', $VariableID);
     }
 
     /**
@@ -198,10 +208,13 @@ trait SAHMIP_ConfigurationForm
         //Upper light unit trigger list
         $upperLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('UpperLightUnitTriggerList'), true);
-        $amount = count($variables);
+        $amountRows = count($variables) + 1;
+        if ($amountRows == 1) {
+            $amountRows = 3;
+        }
+        $amountVariables = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
-            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -214,9 +227,6 @@ trait SAHMIP_ConfigurationForm
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
-            }
-            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
-                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -234,21 +244,14 @@ trait SAHMIP_ConfigurationForm
                     }
                 }
             }
-            $stateName = 'fehlerhaft';
             $rowColor = '#FFC0C0'; //red
             if ($conditions) {
-                $stateName = 'Bedingung nicht erfüllt!';
-                $rowColor = '#C0C0FF'; //violett
-                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
-                    $stateName = 'Bedingung erfüllt';
-                    $rowColor = '#C0FFC0'; //light green
-                }
+                $rowColor = '#C0FFC0'; //light green
                 if (!$variable['Use']) {
-                    $stateName = 'Deaktiviert';
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $upperLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
+            $upperLightUnitTriggerListValues[] = ['rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -357,10 +360,78 @@ trait SAHMIP_ConfigurationForm
                         'bold'    => true
                     ],
                     [
+                        'type'    => 'PopupButton',
+                        'caption' => 'Aktueller Status',
+                        'popup'   => [
+                            'caption' => 'Aktueller Status',
+                            'items'   => [
+                                [
+                                    'type'     => 'List',
+                                    'name'     => 'UpperLightUnitActualVariableStateList',
+                                    'caption'  => 'Variablen',
+                                    'add'      => false,
+                                    'visible'  => false,
+                                    'rowCount' => 1,
+                                    'sort'     => [
+                                        'column'    => 'ActualStatus',
+                                        'direction' => 'ascending'
+                                    ],
+                                    'columns' => [
+                                        [
+                                            'name'    => 'ActualStatus',
+                                            'caption' => 'Aktueller Status',
+                                            'width'   => '250px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'SensorID',
+                                            'caption' => 'ID',
+                                            'width'   => '80px',
+                                            'onClick' => self::MODULE_PREFIX . '_ModifyActualVariableStatesConfigurationButton($id, "UpperLightUnitActualVariableStateConfigurationButton", $UpperLightUnitActualVariableStateList["SensorID"]);',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Designation',
+                                            'caption' => 'Bezeichnung',
+                                            'width'   => '400px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Color',
+                                            'caption' => 'Farbe',
+                                            'width'   => '120px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Brightness',
+                                            'caption' => 'Helligkeit',
+                                            'width'   => '120px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'LastUpdate',
+                                            'caption' => 'Letzte Aktualisierung',
+                                            'width'   => '200px',
+                                            'save'    => false
+                                        ]
+                                    ]
+                                ],
+                                [
+                                    'type'     => 'OpenObjectButton',
+                                    'name'     => 'UpperLightUnitActualVariableStateConfigurationButton',
+                                    'caption'  => 'Bearbeiten',
+                                    'visible'  => false,
+                                    'objectID' => 0
+                                ]
+                            ]
+                        ],
+                        'onClick' => self::MODULE_PREFIX . '_GetUpperLightUnitActualVariableStates($id);'
+                    ],
+                    [
                         'type'     => 'List',
                         'name'     => 'UpperLightUnitTriggerList',
                         'caption'  => 'Auslöser',
-                        'rowCount' => $amount,
+                        'rowCount' => $amountRows,
                         'add'      => true,
                         'delete'   => true,
                         'sort'     => [
@@ -421,120 +492,33 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
-                                'name'    => 'ActualStatus',
-                                'caption' => 'Aktueller Status',
-                                'width'   => '200px',
-                                'add'     => ''
-                            ],
-                            [
-                                'caption' => 'ID',
-                                'name'    => 'SensorID',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
-                                'width'   => '100px',
-                                'add'     => ''
-                            ],
-                            [
-                                'caption' => 'Objektbaum',
-                                'name'    => 'VariableLocation',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
-                                'width'   => '350px',
-                                'add'     => ''
-                            ],
-                            [
                                 'caption' => 'Bezeichnung',
                                 'name'    => 'Designation',
                                 'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '300px',
+
                                 'add'     => '',
                                 'edit'    => [
                                     'type' => 'ValidationTextBox'
                                 ]
                             ],
                             [
-                                'caption' => ' ',
-                                'name'    => 'SpacerPrimaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Bedingung:',
-                                'name'    => 'LabelPrimaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
+                                'caption' => 'Primäre Bedingung',
                                 'name'    => 'PrimaryCondition',
-                                'width'   => '200px',
+                                'width'   => '1000px',
                                 'add'     => '',
-                                'visible' => false,
                                 'edit'    => [
                                     'type' => 'SelectCondition'
                                 ]
                             ],
                             [
-                                'caption' => ' ',
-                                'name'    => 'SpacerSecondaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Weitere Bedingung(en):',
-                                'name'    => 'LabelSecondaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
+                                'caption' => 'Weitere Bedingungen',
                                 'name'    => 'SecondaryCondition',
-                                'width'   => '200px',
+                                'width'   => '1000px',
                                 'add'     => '',
-                                'visible' => false,
                                 'edit'    => [
                                     'type'  => 'SelectCondition',
                                     'multi' => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
-                                'name'    => 'SpacerSignaling',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Signalisierung:',
-                                'name'    => 'LabelSignaling',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
                                 ]
                             ],
                             [
@@ -577,7 +561,6 @@ trait SAHMIP_ConfigurationForm
                                             'caption' => 'Weiß',
                                             'value'   => 7
                                         ]
-
                                     ]
                                 ]
                             ],
@@ -594,7 +577,7 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
-                                'caption' => 'Signalisierung forcieren',
+                                'caption' => 'Signalisierung erzwingen',
                                 'name'    => 'ForceSignaling',
                                 'width'   => '200px',
                                 'add'     => false,
@@ -606,23 +589,20 @@ trait SAHMIP_ConfigurationForm
                         'values' => $upperLightUnitTriggerListValues
                     ],
                     [
-                        'type'     => 'OpenObjectButton',
-                        'name'     => 'UpperLightUnitTriggerListConfigurationButton',
-                        'caption'  => 'Bearbeiten',
-                        'visible'  => false,
-                        'objectID' => 0
-                    ],
-                    [
-                        'type'     => 'Label',
-                        'name'     => 'UpperLightUnitTriggerListConfigurationButtonSpacer',
-                        'caption'  => ' ',
-                        'visible'  => false,
-                        'objectID' => 0
+                        'type'    => 'Label',
+                        'caption' => 'Anzahl Auslöser: ' . $amountVariables
                     ],
                     [
                         'type'    => 'CheckBox',
                         'name'    => 'UpdateLowerLightUnit',
                         'caption' => 'Untere Leuchteinheit aktualisieren',
+                    ],
+                    [
+                        'type'     => 'OpenObjectButton',
+                        'name'     => 'UpperLightUnitTriggerListConfigurationButton',
+                        'caption'  => 'Bearbeiten',
+                        'visible'  => false,
+                        'objectID' => 0
                     ]
                 ]
             ];
@@ -653,10 +633,13 @@ trait SAHMIP_ConfigurationForm
         //Lower light unit trigger list
         $lowerLightUnitTriggerListValues = [];
         $variables = json_decode($this->ReadPropertyString('LowerLightUnitTriggerList'), true);
-        $amount = count($variables);
+        $amountRows = count($variables) + 1;
+        if ($amountRows == 1) {
+            $amountRows = 3;
+        }
+        $amountVariables = count($variables);
         foreach ($variables as $variable) {
             $sensorID = 0;
-            $variableLocation = '';
             if ($variable['PrimaryCondition'] != '') {
                 $primaryCondition = json_decode($variable['PrimaryCondition'], true);
                 if (array_key_exists(0, $primaryCondition)) {
@@ -669,9 +652,6 @@ trait SAHMIP_ConfigurationForm
             $conditions = true;
             if ($sensorID <= 1 || !@IPS_ObjectExists($sensorID)) {
                 $conditions = false;
-            }
-            if ($sensorID > 1 && @IPS_ObjectExists($sensorID)) {
-                $variableLocation = IPS_GetLocation($sensorID);
             }
             if ($variable['SecondaryCondition'] != '') {
                 $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
@@ -689,21 +669,14 @@ trait SAHMIP_ConfigurationForm
                     }
                 }
             }
-            $stateName = 'fehlerhaft';
             $rowColor = '#FFC0C0'; //red
             if ($conditions) {
-                $stateName = 'Bedingung nicht erfüllt!';
-                $rowColor = '#C0C0FF'; //violett
-                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
-                    $stateName = 'Bedingung erfüllt';
-                    $rowColor = '#C0FFC0'; //light green
-                }
+                $rowColor = '#C0FFC0'; //light green
                 if (!$variable['Use']) {
-                    $stateName = 'Deaktiviert';
                     $rowColor = '#DFDFDF'; //grey
                 }
             }
-            $lowerLightUnitTriggerListValues[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'VariableLocation' => $variableLocation, 'rowColor' => $rowColor];
+            $lowerLightUnitTriggerListValues[] = ['rowColor' => $rowColor];
         }
 
         $form['elements'][] =
@@ -808,10 +781,78 @@ trait SAHMIP_ConfigurationForm
                         'bold'    => true
                     ],
                     [
+                        'type'    => 'PopupButton',
+                        'caption' => 'Aktueller Status',
+                        'popup'   => [
+                            'caption' => 'Aktueller Status',
+                            'items'   => [
+                                [
+                                    'type'     => 'List',
+                                    'name'     => 'LowerLightUnitActualVariableStateList',
+                                    'caption'  => 'Variablen',
+                                    'add'      => false,
+                                    'visible'  => false,
+                                    'rowCount' => 1,
+                                    'sort'     => [
+                                        'column'    => 'ActualStatus',
+                                        'direction' => 'ascending'
+                                    ],
+                                    'columns' => [
+                                        [
+                                            'name'    => 'ActualStatus',
+                                            'caption' => 'Aktueller Status',
+                                            'width'   => '250px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'SensorID',
+                                            'caption' => 'ID',
+                                            'width'   => '80px',
+                                            'onClick' => self::MODULE_PREFIX . '_ModifyActualVariableStatesConfigurationButton($id, "LowerLightUnitActualVariableStateConfigurationButton", $LowerLightUnitActualVariableStateList["SensorID"]);',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Designation',
+                                            'caption' => 'Bezeichnung',
+                                            'width'   => '400px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Color',
+                                            'caption' => 'Farbe',
+                                            'width'   => '120px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Brightness',
+                                            'caption' => 'Helligkeit',
+                                            'width'   => '120px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'LastUpdate',
+                                            'caption' => 'Letzte Aktualisierung',
+                                            'width'   => '200px',
+                                            'save'    => false
+                                        ]
+                                    ]
+                                ],
+                                [
+                                    'type'     => 'OpenObjectButton',
+                                    'name'     => 'LowerLightUnitActualVariableStateConfigurationButton',
+                                    'caption'  => 'Bearbeiten',
+                                    'visible'  => false,
+                                    'objectID' => 0
+                                ]
+                            ]
+                        ],
+                        'onClick' => self::MODULE_PREFIX . '_GetLowerLightUnitActualVariableStates($id);'
+                    ],
+                    [
                         'type'     => 'List',
                         'name'     => 'LowerLightUnitTriggerList',
                         'caption'  => 'Auslöser',
-                        'rowCount' => $amount,
+                        'rowCount' => $amountRows,
                         'add'      => true,
                         'delete'   => true,
                         'sort'     => [
@@ -872,26 +913,6 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
-                                'name'    => 'ActualStatus',
-                                'caption' => 'Aktueller Status',
-                                'width'   => '200px',
-                                'add'     => ''
-                            ],
-                            [
-                                'caption' => 'ID',
-                                'name'    => 'SensorID',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "LowerLightUnitTriggerListConfigurationButton", $LowerLightUnitTriggerList["PrimaryCondition"]);',
-                                'width'   => '100px',
-                                'add'     => ''
-                            ],
-                            [
-                                'caption' => 'Objektbaum',
-                                'name'    => 'VariableLocation',
-                                'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "LowerLightUnitTriggerListConfigurationButton", $LowerLightUnitTriggerList["PrimaryCondition"]);',
-                                'width'   => '350px',
-                                'add'     => ''
-                            ],
-                            [
                                 'caption' => 'Bezeichnung',
                                 'name'    => 'Designation',
                                 'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "LowerLightUnitTriggerListConfigurationButton", $LowerLightUnitTriggerList["PrimaryCondition"]);',
@@ -902,90 +923,22 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
-                                'caption' => ' ',
-                                'name'    => 'SpacerPrimaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Bedingung:',
-                                'name'    => 'LabelPrimaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
+                                'caption' => 'Primäre Bedingung',
                                 'name'    => 'PrimaryCondition',
-                                'width'   => '200px',
+                                'width'   => '1000px',
                                 'add'     => '',
-                                'visible' => false,
                                 'edit'    => [
                                     'type' => 'SelectCondition'
                                 ]
                             ],
                             [
-                                'caption' => ' ',
-                                'name'    => 'SpacerSecondaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Weitere Bedingung(en):',
-                                'name'    => 'LabelSecondaryCondition',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
+                                'caption' => 'Weitere Bedingungen',
                                 'name'    => 'SecondaryCondition',
-                                'width'   => '200px',
+                                'width'   => '1000px',
                                 'add'     => '',
-                                'visible' => false,
                                 'edit'    => [
                                     'type'  => 'SelectCondition',
                                     'multi' => true
-                                ]
-                            ],
-                            [
-                                'caption' => ' ',
-                                'name'    => 'SpacerSignaling',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type' => 'Label'
-                                ]
-                            ],
-                            [
-                                'caption' => 'Signalisierung:',
-                                'name'    => 'LabelSignaling',
-                                'width'   => '200px',
-                                'add'     => '',
-                                'visible' => false,
-                                'edit'    => [
-                                    'type'   => 'Label',
-                                    'italic' => true,
-                                    'bold'   => true
                                 ]
                             ],
                             [
@@ -1044,7 +997,7 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
-                                'caption' => 'Signalisierung forcieren',
+                                'caption' => 'Signalisierung erzwingen',
                                 'name'    => 'ForceSignaling',
                                 'width'   => '200px',
                                 'add'     => false,
@@ -1056,27 +1009,23 @@ trait SAHMIP_ConfigurationForm
                         'values' => $lowerLightUnitTriggerListValues
                     ],
                     [
-                        'type'     => 'OpenObjectButton',
-                        'name'     => 'LowerLightUnitTriggerListConfigurationButton',
-                        'caption'  => 'Bearbeiten',
-                        'visible'  => false,
-                        'objectID' => 0
-                    ],
-                    [
-                        'type'     => 'Label',
-                        'name'     => 'LowerLightUnitTriggerListConfigurationButtonSpacer',
-                        'caption'  => ' ',
-                        'visible'  => false,
-                        'objectID' => 0
+                        'type'    => 'Label',
+                        'caption' => 'Anzahl Auslöser: ' . $amountVariables
                     ],
                     [
                         'type'    => 'CheckBox',
                         'name'    => 'UpdateUpperLightUnit',
                         'caption' => 'Obere Leuchteinheit aktualisieren',
 
+                    ],
+                    [
+                        'type'     => 'OpenObjectButton',
+                        'name'     => 'LowerLightUnitTriggerListConfigurationButton',
+                        'caption'  => 'Bearbeiten',
+                        'visible'  => false,
+                        'objectID' => 0
                     ]
                 ]
-
             ];
 
         //Check status
@@ -1084,12 +1033,17 @@ trait SAHMIP_ConfigurationForm
             [
                 'type'    => 'ExpansionPanel',
                 'name'    => 'Panel4',
-                'caption' => 'Statusprüfung',
+                'caption' => 'Aktualisierung',
                 'items'   => [
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'AutomaticStatusUpdate',
+                        'caption' => 'Automatische Aktualisierung'
+                    ],
                     [
                         'type'    => 'NumberSpinner',
                         'name'    => 'CheckStatusInterval',
-                        'caption' => 'Statusprüfung',
+                        'caption' => 'Intervall',
                         'minimum' => 0,
                         'suffix'  => 'Sekunden'
                     ]
@@ -1426,20 +1380,6 @@ trait SAHMIP_ConfigurationForm
 
         $form['actions'][] =
             [
-
-                'type'    => 'Button',
-                'caption' => 'Status aktualisieren',
-                'onClick' => self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ', true);' . self::MODULE_PREFIX . '_UIShowMessage($id, "Status wurde aktualisiert!");'
-            ];
-
-        $form['actions'][] =
-            [
-                'type'    => 'Label',
-                'caption' => ' '
-            ];
-
-        $form['actions'][] =
-            [
                 'type'    => 'Label',
                 'caption' => 'Schaltelemente'
             ];
@@ -1459,28 +1399,39 @@ trait SAHMIP_ConfigurationForm
         $registeredReferences = [];
         $references = $this->GetReferenceList();
         $amountReferences = count($references);
+        if ($amountReferences == 0) {
+            $amountReferences = 3;
+        }
         foreach ($references as $reference) {
             $name = 'Objekt #' . $reference . ' existiert nicht';
+            $location = '';
             $rowColor = '#FFC0C0'; //red
             if (@IPS_ObjectExists($reference)) {
                 $name = IPS_GetName($reference);
+                $location = IPS_GetLocation($reference);
                 $rowColor = '#C0FFC0'; //light green
             }
             $registeredReferences[] = [
-                'ObjectID' => $reference,
-                'Name'     => $name,
-                'rowColor' => $rowColor];
+                'ObjectID'         => $reference,
+                'Name'             => $name,
+                'VariableLocation' => $location,
+                'rowColor'         => $rowColor];
         }
 
         //Registered messages
         $registeredMessages = [];
         $messages = $this->GetMessageList();
         $amountMessages = count($messages);
+        if ($amountMessages == 0) {
+            $amountMessages = 3;
+        }
         foreach ($messages as $id => $messageID) {
             $name = 'Objekt #' . $id . ' existiert nicht';
+            $location = '';
             $rowColor = '#FFC0C0'; //red
             if (@IPS_ObjectExists($id)) {
                 $name = IPS_GetName($id);
+                $location = IPS_GetLocation($id);
                 $rowColor = '#C0FFC0'; //light green
             }
             switch ($messageID) {
@@ -1498,18 +1449,25 @@ trait SAHMIP_ConfigurationForm
             $registeredMessages[] = [
                 'ObjectID'           => $id,
                 'Name'               => $name,
+                'VariableLocation'   => $location,
                 'MessageID'          => $messageID,
                 'MessageDescription' => $messageDescription,
                 'rowColor'           => $rowColor];
         }
 
+        //Developer area
         $form['actions'][] = [
             'type'    => 'ExpansionPanel',
             'caption' => 'Entwicklerbereich',
             'items'   => [
                 [
+                    'type'    => 'Label',
+                    'caption' => 'Registrierte Referenzen',
+                    'bold'    => true,
+                    'italic'  => true
+                ],
+                [
                     'type'     => 'List',
-                    'caption'  => 'Registrierte Referenzen',
                     'name'     => 'RegisteredReferences',
                     'rowCount' => $amountReferences,
                     'sort'     => [
@@ -1521,13 +1479,17 @@ trait SAHMIP_ConfigurationForm
                             'caption' => 'ID',
                             'name'    => 'ObjectID',
                             'width'   => '150px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " bearbeiten", $RegisteredReferences["ObjectID"]);'
                         ],
                         [
                             'caption' => 'Name',
                             'name'    => 'Name',
                             'width'   => '300px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredReferencesConfigurationButton", "ID " . $RegisteredReferences["ObjectID"] . " aufrufen", $RegisteredReferences["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'width'   => '700px'
                         ]
                     ],
                     'values' => $registeredReferences
@@ -1535,14 +1497,23 @@ trait SAHMIP_ConfigurationForm
                 [
                     'type'     => 'OpenObjectButton',
                     'name'     => 'RegisteredReferencesConfigurationButton',
-                    'caption'  => 'Aufrufen',
+                    'caption'  => 'Bearbeiten',
                     'visible'  => false,
                     'objectID' => 0
                 ],
                 [
+                    'type'    => 'Label',
+                    'caption' => ' '
+                ],
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Registrierte Nachrichten',
+                    'bold'    => true,
+                    'italic'  => true
+                ],
+                [
                     'type'     => 'List',
                     'name'     => 'RegisteredMessages',
-                    'caption'  => 'Registrierte Nachrichten',
                     'rowCount' => $amountMessages,
                     'sort'     => [
                         'column'    => 'ObjectID',
@@ -1553,13 +1524,17 @@ trait SAHMIP_ConfigurationForm
                             'caption' => 'ID',
                             'name'    => 'ObjectID',
                             'width'   => '150px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " bearbeiten", $RegisteredMessages["ObjectID"]);'
                         ],
                         [
                             'caption' => 'Name',
                             'name'    => 'Name',
                             'width'   => '300px',
-                            'onClick' => self::MODULE_PREFIX . '_ModifyButton($id, "RegisteredMessagesConfigurationButton", "ID " . $RegisteredMessages["ObjectID"] . " aufrufen", $RegisteredMessages["ObjectID"]);'
+                        ],
+                        [
+                            'caption' => 'Objektbaum',
+                            'name'    => 'VariableLocation',
+                            'width'   => '700px'
                         ],
                         [
                             'caption' => 'Nachrichten ID',
@@ -1577,7 +1552,7 @@ trait SAHMIP_ConfigurationForm
                 [
                     'type'     => 'OpenObjectButton',
                     'name'     => 'RegisteredMessagesConfigurationButton',
-                    'caption'  => 'Aufrufen',
+                    'caption'  => 'Bearbeiten',
                     'visible'  => false,
                     'objectID' => 0
                 ]

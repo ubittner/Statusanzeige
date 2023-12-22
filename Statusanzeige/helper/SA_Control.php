@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/Statusanzeige/helper
+ * @project       Statusanzeige/Statusanzeige/helper/
  * @file          SA_Control.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
@@ -11,7 +11,6 @@
 /** @noinspection PhpUnhandledExceptionInspection */
 /** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 

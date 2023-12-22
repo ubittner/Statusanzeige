@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_Signaling.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
@@ -65,6 +65,210 @@ trait SAHMIP_Signaling
     }
 
     /**
+     * Gets the actual variable states for the upper light unit.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function GetUpperLightUnitActualVariableStates(): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->UpdateUpperLightUnit(true);
+        $this->UpdateFormField('UpperLightUnitActualVariableStateConfigurationButton', 'visible', false);
+        $actualVariableStates = [];
+        $variables = json_decode($this->ReadPropertyString('UpperLightUnitTriggerList'), true);
+        foreach ($variables as $variable) {
+            if (!$variable['Use']) {
+                continue;
+            }
+            $conditions = true;
+            if ($variable['PrimaryCondition'] != '') {
+                $primaryCondition = json_decode($variable['PrimaryCondition'], true);
+                if (array_key_exists(0, $primaryCondition)) {
+                    if (array_key_exists(0, $primaryCondition[0]['rules']['variable'])) {
+                        $sensorID = $primaryCondition[0]['rules']['variable'][0]['variableID'];
+                        if ($sensorID <= 1 || @!IPS_ObjectExists($sensorID)) {
+                            $conditions = false;
+                        }
+                    }
+                }
+            }
+            if ($variable['SecondaryCondition'] != '') {
+                $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
+                if (array_key_exists(0, $secondaryConditions)) {
+                    if (array_key_exists('rules', $secondaryConditions[0])) {
+                        $rules = $secondaryConditions[0]['rules']['variable'];
+                        foreach ($rules as $rule) {
+                            if (array_key_exists('variableID', $rule)) {
+                                $id = $rule['variableID'];
+                                if ($id <= 1 || @!IPS_ObjectExists($id)) {
+                                    $conditions = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($conditions && isset($sensorID)) {
+                $stateName = '❌ Bedingung nicht erfüllt!';
+                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
+                    $stateName = '✅ Bedingung erfüllt';
+                }
+                $colorName = '';
+                $color = $variable['Color'];
+                switch ($color) {
+                    case 0:
+                        $colorName = 'Aus';
+                        break;
+
+                    case 1:
+                        $colorName = 'Blau';
+                        break;
+
+                    case 2:
+                        $colorName = 'Grün';
+                        break;
+
+                    case 3:
+                        $colorName = 'Türkis';
+                        break;
+
+                    case 4:
+                        $colorName = 'Rot';
+                        break;
+
+                    case 5:
+                        $colorName = 'Violett';
+                        break;
+
+                    case 6:
+                        $colorName = 'Gelb';
+                        break;
+
+                    case 7:
+                        $colorName = 'Weiß';
+                        break;
+                }
+                $variableUpdate = IPS_GetVariable($sensorID)['VariableUpdated']; //timestamp or 0 = never
+                $lastUpdate = 'Nie';
+                if ($variableUpdate != 0) {
+                    $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
+                }
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'LastUpdate' => $lastUpdate];
+            }
+        }
+        $amount = count($actualVariableStates);
+        if ($amount == 0) {
+            $amount = 1;
+        }
+        $this->UpdateFormField('UpperLightUnitActualVariableStateList', 'rowCount', $amount);
+        $this->UpdateFormField('UpperLightUnitActualVariableStateList', 'values', json_encode($actualVariableStates));
+        $this->UpdateFormField('UpperLightUnitActualVariableStateList', 'visible', true);
+    }
+
+    /**
+     * Gets the actual variable states for the lower light unit.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function GetLowerLightUnitActualVariableStates(): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->UpdateLowerLightUnit(true);
+        $this->UpdateFormField('LowerLightUnitActualVariableStateConfigurationButton', 'visible', false);
+        $actualVariableStates = [];
+        $variables = json_decode($this->ReadPropertyString('LowerLightUnitTriggerList'), true);
+        foreach ($variables as $variable) {
+            if (!$variable['Use']) {
+                continue;
+            }
+            $conditions = true;
+            if ($variable['PrimaryCondition'] != '') {
+                $primaryCondition = json_decode($variable['PrimaryCondition'], true);
+                if (array_key_exists(0, $primaryCondition)) {
+                    if (array_key_exists(0, $primaryCondition[0]['rules']['variable'])) {
+                        $sensorID = $primaryCondition[0]['rules']['variable'][0]['variableID'];
+                        if ($sensorID <= 1 || @!IPS_ObjectExists($sensorID)) {
+                            $conditions = false;
+                        }
+                    }
+                }
+            }
+            if ($variable['SecondaryCondition'] != '') {
+                $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
+                if (array_key_exists(0, $secondaryConditions)) {
+                    if (array_key_exists('rules', $secondaryConditions[0])) {
+                        $rules = $secondaryConditions[0]['rules']['variable'];
+                        foreach ($rules as $rule) {
+                            if (array_key_exists('variableID', $rule)) {
+                                $id = $rule['variableID'];
+                                if ($id <= 1 || @!IPS_ObjectExists($id)) {
+                                    $conditions = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($conditions && isset($sensorID)) {
+                $stateName = '❌ Bedingung nicht erfüllt!';
+                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
+                    $stateName = '✅ Bedingung erfüllt';
+                }
+                $colorName = '';
+                $color = $variable['Color'];
+                switch ($color) {
+                    case 0:
+                        $colorName = 'Aus';
+                        break;
+
+                    case 1:
+                        $colorName = 'Blau';
+                        break;
+
+                    case 2:
+                        $colorName = 'Grün';
+                        break;
+
+                    case 3:
+                        $colorName = 'Türkis';
+                        break;
+
+                    case 4:
+                        $colorName = 'Rot';
+                        break;
+
+                    case 5:
+                        $colorName = 'Violett';
+                        break;
+
+                    case 6:
+                        $colorName = 'Gelb';
+                        break;
+
+                    case 7:
+                        $colorName = 'Weiß';
+                        break;
+                }
+                $variableUpdate = IPS_GetVariable($sensorID)['VariableUpdated']; //timestamp or 0 = never
+                $lastUpdate = 'Nie';
+                if ($variableUpdate != 0) {
+                    $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
+                }
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'LastUpdate' => $lastUpdate];
+            }
+        }
+        $amount = count($actualVariableStates);
+        if ($amount == 0) {
+            $amount = 1;
+        }
+        $this->UpdateFormField('LowerLightUnitActualVariableStateList', 'rowCount', $amount);
+        $this->UpdateFormField('LowerLightUnitActualVariableStateList', 'values', json_encode($actualVariableStates));
+        $this->UpdateFormField('LowerLightUnitActualVariableStateList', 'visible', true);
+    }
+
+    /**
      * Updates the light units.
      *
      * @param bool $ForceSignaling
@@ -95,10 +299,11 @@ trait SAHMIP_Signaling
             $this->UpdateColorFromDeviceColor(1);
             $this->UpdateBrightnessFromDeviceLevel(1);
         }
-        //Set check status timer
-        $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval');
-        if ($milliseconds > 0) {
-            $milliseconds = $milliseconds * 1000;
+
+        //Set automatic status update timer
+        $milliseconds = 0;
+        if ($this->ReadPropertyBoolean('AutomaticStatusUpdate')) {
+            $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval') * 1000;
         }
         $this->SetTimerInterval('CheckStatus', $milliseconds);
     }

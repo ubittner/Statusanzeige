@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @project       Statusanzeige/StatusanzeigeHomematicIP/helper
+ * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_Control.php
  * @author        Ulrich Bittner
  * @copyright     2023 Ulrich Bittner
@@ -10,7 +10,6 @@
 
 /** @noinspection SpellCheckingInspection */
 /** @noinspection DuplicatedCode */
-/** @noinspection PhpUnused */
 
 declare(strict_types=1);
 

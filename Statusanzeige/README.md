@@ -66,22 +66,22 @@ SA_ToggleSignalling(12345, true, false);
 #### 6.1 Signalisierung auslösen
 
 ```text
-boolean SA_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool OVERRIDE_MAINTENANCE);
+boolean SA_ToggleSignalling(integer INSTANCE_ID, bool STATE, bool FORCE_SIGNALING);
 ```
 
 Konnte der Befehl erfolgreich ausgeführt werden, liefert er als Ergebnis **TRUE**, andernfalls **FALSE**.
 
-| Parameter              | Wert       | Bezeichnung    | Beschreibung                         |
-|------------------------|------------|----------------|--------------------------------------|
-| `INSTANCE_ID`          |            | ID der Instanz |                                      |
-|                        |            |                |                                      |
-| `STATE`                |            | Status         |                                      |
-|                        | false      | Aus            | Statusanzeige Aus                    |
-|                        | true       | An             | Statusanzeige An                     |
-|                        |            |                |                                      |
-| `OVERRIDE_MAINTENANCE` |            |                |                                      |
-|                        | false      | Aus            | Wartungsmodus wird geprüft           |
-|                        | true       | An             | Wartungsmodus wird nicht geprüft     |
+| Parameter           | Wert       | Bezeichnung    | Beschreibung              |
+|---------------------|------------|----------------|---------------------------|
+| `INSTANCE_ID`       |            | ID der Instanz |                           |
+|                     |            |                |                           |
+| `STATE`             |            | Status         |                           |
+|                     | false      | Aus            | Statusanzeige Aus         |
+|                     | true       | An             | Statusanzeige An          |
+|                     |            |                |                           |
+| `FORCE_SIGNALING`   |            |                |                           |
+|                     | false      | Aus            | Nur bei Änderung schalten |
+|                     | true       | An             | Schalten erzwingen        |
 
 **Beispiel**:
 ```php
