@@ -588,6 +588,12 @@ trait SAHM_ConfigurationForm
 
         $form['actions'][] =
             [
+                'type'    => 'Label',
+                'caption' => 'Schaltelemente'
+            ];
+
+        $form['actions'][] =
+            [
                 'type' => 'TestCenter',
             ];
 

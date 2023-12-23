@@ -577,6 +577,12 @@ trait SA_ConfigurationForm
 
         ########## Actions
 
+        $form['actions'][] =
+            [
+                'type'    => 'Label',
+                'caption' => 'Schaltelemente'
+            ];
+
         //Test center
         $form['actions'][] =
             [
