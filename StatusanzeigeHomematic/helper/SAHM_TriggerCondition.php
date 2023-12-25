@@ -16,6 +16,76 @@ declare(strict_types=1);
 trait SAHM_TriggerCondition
 {
     /**
+     * Gets the actual variable states.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function GetActualVariableStates(): void
+    {
+        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
+        $this->UpdateState(true);
+        $this->UpdateFormField('ActualVariableStateConfigurationButton', 'visible', false);
+        $actualVariableStates = [];
+        $variables = json_decode($this->ReadPropertyString('TriggerList'), true);
+        foreach ($variables as $variable) {
+            if (!$variable['Use']) {
+                continue;
+            }
+            $conditions = true;
+            if ($variable['PrimaryCondition'] != '') {
+                $primaryCondition = json_decode($variable['PrimaryCondition'], true);
+                if (array_key_exists(0, $primaryCondition)) {
+                    if (array_key_exists(0, $primaryCondition[0]['rules']['variable'])) {
+                        $sensorID = $primaryCondition[0]['rules']['variable'][0]['variableID'];
+                        if ($sensorID <= 1 || @!IPS_ObjectExists($sensorID)) {
+                            $conditions = false;
+                        }
+                    }
+                }
+            }
+            if ($variable['SecondaryCondition'] != '') {
+                $secondaryConditions = json_decode($variable['SecondaryCondition'], true);
+                if (array_key_exists(0, $secondaryConditions)) {
+                    if (array_key_exists('rules', $secondaryConditions[0])) {
+                        $rules = $secondaryConditions[0]['rules']['variable'];
+                        foreach ($rules as $rule) {
+                            if (array_key_exists('variableID', $rule)) {
+                                $id = $rule['variableID'];
+                                if ($id <= 1 || @!IPS_ObjectExists($id)) {
+                                    $conditions = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if ($conditions && isset($sensorID)) {
+                $stateName = '❌ Bedingung nicht erfüllt!';
+                if (IPS_IsConditionPassing($variable['PrimaryCondition']) && IPS_IsConditionPassing($variable['SecondaryCondition'])) {
+                    $stateName = '✅ Bedingung erfüllt';
+                }
+                $signalingName = 'Aus';
+                if ($variable['Signalling'] == 1) {
+                    $signalingName = 'An';
+                }
+                $variableUpdate = IPS_GetVariable($sensorID)['VariableUpdated']; //timestamp or 0 = never
+                $lastUpdate = 'Nie';
+                if ($variableUpdate != 0) {
+                    $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
+                }
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Signalling' =>  $signalingName, 'LastUpdate' => $lastUpdate];
+            }
+        }
+        $amount = count($actualVariableStates);
+        if ($amount == 0) {
+            $amount = 1;
+        }
+        $this->UpdateFormField('ActualVariableStateList', 'rowCount', $amount);
+        $this->UpdateFormField('ActualVariableStateList', 'values', json_encode($actualVariableStates));
+    }
+
+    /**
      * Checks the trigger conditions.
      *
      * @param int $SenderID

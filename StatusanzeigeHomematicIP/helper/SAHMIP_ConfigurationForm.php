@@ -370,7 +370,6 @@ trait SAHMIP_ConfigurationForm
                                     'name'     => 'UpperLightUnitActualVariableStateList',
                                     'caption'  => 'Variablen',
                                     'add'      => false,
-                                    'visible'  => false,
                                     'rowCount' => 1,
                                     'sort'     => [
                                         'column'    => 'ActualStatus',
