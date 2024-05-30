@@ -204,7 +204,7 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->EnableAction('LowerLightUnitMode');
         if (!$id) {
             IPS_SetIcon($this->GetIDForIdent('LowerLightUnitMode'), 'Gear');
-            $this->SetValue($this->GetIDForIdent('LowerLightUnitMode'), 1);
+            $this->SetValue('LowerLightUnitMode', 1);
         }
 
         ########## Attributes
