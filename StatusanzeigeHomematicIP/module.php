@@ -4,7 +4,7 @@
  * @project       Statusanzeige/StatusanzeigeHomematicIP/
  * @file          module.php
  * @author        Ulrich Bittner
- * @copyright     2022 Ulrich Bittner
+ * @copyright     2022,2023,2024 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
@@ -47,8 +47,10 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('UpperLightUnitDeviceType', 0);
         $this->RegisterPropertyInteger('UpperLightUnit', 0);
         $this->RegisterPropertyInteger('UpperLightUnitSwitchingDelay', 0);
+        $this->RegisterPropertyBoolean('UpperLightUnitUseCombinedParameter', false);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('UpperLightUnitDeviceBrightness', 0);
+        $this->RegisterPropertyInteger('UpperLightUnitDeviceColorBehaviour', 0);
         $this->RegisterPropertyString('UpperLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateLowerLightUnit', false);
 
@@ -56,8 +58,10 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('LowerLightUnitDeviceType', 0);
         $this->RegisterPropertyInteger('LowerLightUnit', 0);
         $this->RegisterPropertyInteger('LowerLightUnitSwitchingDelay', 0);
+        $this->RegisterPropertyBoolean('LowerLightUnitUseCombinedParameter', false);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceColor', 0);
         $this->RegisterPropertyInteger('LowerLightUnitDeviceBrightness', 0);
+        $this->RegisterPropertyInteger('LowerLightUnitDeviceColorBehaviour', 0);
         $this->RegisterPropertyString('LowerLightUnitTriggerList', '[]');
         $this->RegisterPropertyBoolean('UpdateUpperLightUnit', false);
 
@@ -73,14 +77,24 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyInteger('DeactivationUpperLightUnitColor', 0);
         $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeBrightness', true);
         $this->RegisterPropertyInteger('DeactivationUpperLightUnitBrightness', 0);
-        $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastColor', true);
-        $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastBrightness', true);
+        $this->RegisterPropertyBoolean('DeactivateUpperLightUnitChangeMode', false);
+        $this->RegisterPropertyInteger('DeactivationUpperLightUnitMode', 0);
+
         $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeColor', false);
         $this->RegisterPropertyInteger('DeactivationLowerLightUnitColor', 0);
         $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeBrightness', true);
         $this->RegisterPropertyInteger('DeactivationLowerLightUnitBrightness', 0);
+        $this->RegisterPropertyBoolean('DeactivateLowerLightUnitChangeMode', false);
+        $this->RegisterPropertyInteger('DeactivationLowerLightUnitMode', 0);
+
+        $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastColor', true);
+        $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastBrightness', true);
+        $this->RegisterPropertyBoolean('ReactivateUpperLightUnitLastMode', false);
+
         $this->RegisterPropertyBoolean('ReactivateLowerLightUnitLastColor', true);
         $this->RegisterPropertyBoolean('ReactivateLowerLightUnitLastBrightness', true);
+        $this->RegisterPropertyBoolean('ReactivateLowerLightUnitLastMode', false);
+
         $this->RegisterPropertyBoolean('UseAutomaticDeactivation', false);
         $this->RegisterPropertyString('AutomaticDeactivationStartTime', '{"hour":22,"minute":0,"second":0}');
         $this->RegisterPropertyString('AutomaticDeactivationEndTime', '{"hour":6,"minute":0,"second":0}');
@@ -89,8 +103,10 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->RegisterPropertyBoolean('EnableActive', false);
         $this->RegisterPropertyBoolean('EnableUpperLightUnitColor', true);
         $this->RegisterPropertyBoolean('EnableUpperLightUnitBrightness', true);
+        $this->RegisterPropertyBoolean('EnableUpperLightUnitMode', true);
         $this->RegisterPropertyBoolean('EnableLowerLightUnitColor', true);
         $this->RegisterPropertyBoolean('EnableLowerLightUnitBrightness', true);
+        $this->RegisterPropertyBoolean('EnableLowerLightUnitMode', true);
 
         ########## Variables
 
@@ -102,7 +118,9 @@ class StatusanzeigeHomematicIP extends IPSModule
             $this->SetValue('Active', true);
         }
 
-        //Upper light unit color
+        ##### Upper Light Unit
+
+        //Color
         $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.Color';
         if (!IPS_VariableProfileExists($profile)) {
             IPS_CreateVariableProfile($profile, 1);
@@ -121,31 +139,82 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->EnableAction('UpperLightUnitColor');
         if (!$id) {
             IPS_SetIcon($this->GetIDForIdent('UpperLightUnitColor'), 'Bulb');
+            $this->SetValue('UpperLightUnitColor', 0);
         }
 
-        //Upper light unit brightness
+        // Brightness
+        $id = @$this->GetIDForIdent('UpperLightUnitBrightness');
         $this->RegisterVariableInteger('UpperLightUnitBrightness', 'Obere Leuchteinheit - Helligkeit', '~Intensity.100', 30);
         $this->EnableAction('UpperLightUnitBrightness');
+        if (!$id) {
+            $this->SetValue('UpperLightUnitBrightness', 0);
+        }
 
-        //Lower light unit color
+        //Mode
+        $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.Mode';
+        if (!IPS_VariableProfileExists($profile)) {
+            IPS_CreateVariableProfile($profile, 1);
+        }
+        IPS_SetVariableProfileIcon($profile, '');
+        IPS_SetVariableProfileAssociation($profile, 0, 'Beleuchtung aus', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 1, 'Dauerhaft ein', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 2, 'Langsames Blinken', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 3, 'Mittleres Blinken', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 4, 'Schnelles Blinken', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 5, 'Langsames Blitzen', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 6, 'Mittleres Blitzen', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 7, 'Schnelles Blitzen', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 8, 'Langsames Pulsieren', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 9, 'Mittleres Pulsieren', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 10, 'Schnelles Pulsieren', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 11, 'Vorheriger Wert', '', 0);
+        IPS_SetVariableProfileAssociation($profile, 12, 'Ohne Berücksichtigung', '', 0);
+        $id = @$this->GetIDForIdent('UpperLightUnitMode');
+        $this->RegisterVariableInteger('UpperLightUnitMode', 'Obere Leuchteinheit - Modus', $profile, 35);
+        $this->EnableAction('UpperLightUnitMode');
+        if (!$id) {
+            IPS_SetIcon($this->GetIDForIdent('UpperLightUnitMode'), 'Gear');
+            $this->SetValue('UpperLightUnitMode', 1);
+        }
+
+        ##### Lower Light Unit
+
+        //Color
         $id = @$this->GetIDForIdent('LowerLightUnitColor');
         $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.Color';
         $this->RegisterVariableInteger('LowerLightUnitColor', 'Untere Leuchteinheit - Farbe', $profile, 40);
         $this->EnableAction('LowerLightUnitColor');
         if (!$id) {
             IPS_SetIcon($this->GetIDForIdent('LowerLightUnitColor'), 'Bulb');
+            $this->SetValue('LowerLightUnitColor', 0);
         }
 
-        //Lower light unit brightness
+        //Brightness
+        $id = @$this->GetIDForIdent('LowerLightUnitBrightness');
         $this->RegisterVariableInteger('LowerLightUnitBrightness', 'Untere Leuchteinheit - Helligkeit', '~Intensity.100', 50);
         $this->EnableAction('LowerLightUnitBrightness');
+        if (!$id) {
+            $this->SetValue('LowerLightUnitBrightness', 0);
+        }
+
+        //Mode
+        $id = @$this->GetIDForIdent('LowerLightUnitMode');
+        $profile = self::MODULE_PREFIX . '.' . $this->InstanceID . '.Mode';
+        $this->RegisterVariableInteger('LowerLightUnitMode', 'Untere Leuchteinheit - Modus', $profile, 55);
+        $this->EnableAction('LowerLightUnitMode');
+        if (!$id) {
+            IPS_SetIcon($this->GetIDForIdent('LowerLightUnitMode'), 'Gear');
+            $this->SetValue($this->GetIDForIdent('LowerLightUnitMode'), 1);
+        }
 
         ########## Attributes
 
         $this->RegisterAttributeInteger('UpperLightUnitLastColor', 0);
         $this->RegisterAttributeInteger('UpperLightUnitLastBrightness', 0);
+        $this->RegisterAttributeInteger('UpperLightUnitLastMode', 0);
         $this->RegisterAttributeInteger('LowerLightUnitLastColor', 0);
         $this->RegisterAttributeInteger('LowerLightUnitLastBrightness', 0);
+        $this->RegisterAttributeInteger('LowerLightUnitLastMode', 0);
 
         ########## Timers
 
@@ -182,21 +251,21 @@ class StatusanzeigeHomematicIP extends IPSModule
         }
 
         //Register references and update messages
-        $names = [];
-        $names[] = ['propertyName' => 'UpperLightUnit', 'useUpdate' => false];
-        $names[] = ['propertyName' => 'UpperLightUnitDeviceColor', 'useUpdate' => true];
-        $names[] = ['propertyName' => 'UpperLightUnitDeviceBrightness', 'useUpdate' => true];
-        $names[] = ['propertyName' => 'LowerLightUnit', 'useUpdate' => false];
-        $names[] = ['propertyName' => 'LowerLightUnitDeviceColor', 'useUpdate' => true];
-        $names[] = ['propertyName' => 'LowerLightUnitDeviceBrightness', 'useUpdate' => true];
-        $names[] = ['propertyName' => 'CommandControl', 'useUpdate' => false];
-        foreach ($names as $name) {
-            $id = $this->ReadPropertyInteger($name['propertyName']);
+        $references = ['UpperLightUnit',
+            'UpperLightUnitDeviceColor',
+            'UpperLightUnitDeviceBrightness',
+            'UpperLightUnitDeviceColorBehaviour',
+            'LowerLightUnit',
+            'LowerLightUnitDeviceColor',
+            'LowerLightUnitDeviceBrightness',
+            'LowerLightUnitDeviceColorBehaviour',
+            'CommandControl'
+        ];
+
+        foreach ($references as $reference) {
+            $id = $this->ReadPropertyInteger($reference);
             if ($id > 1 && @IPS_ObjectExists($id)) {
                 $this->RegisterReference($id);
-                if ($name['useUpdate']) {
-                    $this->RegisterMessage($id, VM_UPDATE);
-                }
             }
         }
 
@@ -244,8 +313,10 @@ class StatusanzeigeHomematicIP extends IPSModule
         IPS_SetHidden($this->GetIDForIdent('Active'), !$this->ReadPropertyBoolean('EnableActive'));
         IPS_SetHidden($this->GetIDForIdent('UpperLightUnitColor'), !$this->ReadPropertyBoolean('EnableUpperLightUnitColor'));
         IPS_SetHidden($this->GetIDForIdent('UpperLightUnitBrightness'), !$this->ReadPropertyBoolean('EnableUpperLightUnitBrightness'));
+        IPS_SetHidden($this->GetIDForIdent('UpperLightUnitMode'), !$this->ReadPropertyBoolean('EnableUpperLightUnitMode'));
         IPS_SetHidden($this->GetIDForIdent('LowerLightUnitColor'), !$this->ReadPropertyBoolean('EnableLowerLightUnitColor'));
         IPS_SetHidden($this->GetIDForIdent('LowerLightUnitBrightness'), !$this->ReadPropertyBoolean('EnableLowerLightUnitBrightness'));
+        IPS_SetHidden($this->GetIDForIdent('LowerLightUnitMode'), !$this->ReadPropertyBoolean('EnableLowerLightUnitMode'));
 
         $this->SetAutomaticDeactivationTimer();
 
@@ -284,7 +355,7 @@ class StatusanzeigeHomematicIP extends IPSModule
         parent::Destroy();
 
         //Delete profiles
-        $profiles = ['Color'];
+        $profiles = ['Color', 'Mode'];
         foreach ($profiles as $profile) {
             $profileName = self::MODULE_PREFIX . '.' . $this->InstanceID . '.' . $profile;
             if (IPS_VariableProfileExists($profileName)) {
@@ -310,51 +381,26 @@ class StatusanzeigeHomematicIP extends IPSModule
                 //$Data[4] = timestamp value changed
                 //$Data[5] = timestamp last value
 
-                $trigger = true;
-                $names = ['UpperLightUnitDeviceColor', 'UpperLightUnitDeviceBrightness', 'LowerLightUnitDeviceColor', 'LowerLightUnitDeviceBrightness'];
-                foreach ($names as $name) {
-                    if ($SenderID == $this->ReadPropertyInteger($name)) {
-                        $trigger = false;
-                    }
-                }
-
-                if ($SenderID == $this->ReadPropertyInteger('UpperLightUnitDeviceColor')) {
-                    $this->UpdateColorFromDeviceColor(0);
-                }
-
-                if ($SenderID == $this->ReadPropertyInteger('UpperLightUnitDeviceBrightness')) {
-                    $this->UpdateBrightnessFromDeviceLevel(0);
-                }
-
-                if ($SenderID == $this->ReadPropertyInteger('LowerLightUnitDeviceColor')) {
-                    $this->UpdateColorFromDeviceColor(1);
-                }
-
-                if ($SenderID == $this->ReadPropertyInteger('LowerLightUnitDeviceBrightness')) {
-                    $this->UpdateBrightnessFromDeviceLevel(1);
-                }
-
                 if ($this->CheckMaintenance()) {
                     return;
                 }
 
-                //Trigger updates
-                if ($trigger) {
-                    //Upper light unit
-                    //Checks if the trigger is assigned to the light unit
-                    if ($this->CheckTrigger($SenderID, 0)) {
-                        $this->UpdateUpperLightUnit(false);
-                        if ($this->ReadPropertyBoolean('UpdateLowerLightUnit')) {
-                            $this->UpdateLowerLightUnit(false);
-                        }
-                    }
-                    //Lower light unit
-                    //Checks if the trigger is assigned to the light unit
-                    if ($this->CheckTrigger($SenderID, 1)) {
+                ##### Upper Light Unit
+
+                //Checks if the trigger is assigned to the light unit
+                if ($this->CheckTrigger($SenderID, 0)) {
+                    $this->UpdateUpperLightUnit(false);
+                    if ($this->ReadPropertyBoolean('UpdateLowerLightUnit')) {
                         $this->UpdateLowerLightUnit(false);
-                        if ($this->ReadPropertyBoolean('UpdateUpperLightUnit')) {
-                            $this->UpdateUpperLightUnit(false);
-                        }
+                    }
+                }
+
+                ##### Lower Light Unit
+
+                if ($this->CheckTrigger($SenderID, 1)) {
+                    $this->UpdateLowerLightUnit(false);
+                    if ($this->ReadPropertyBoolean('UpdateUpperLightUnit')) {
+                        $this->UpdateUpperLightUnit(false);
                     }
                 }
                 break;
@@ -375,16 +421,18 @@ class StatusanzeigeHomematicIP extends IPSModule
         $this->UpdateFormField('InfoMessageLabel', 'caption', $infoText);
     }
 
-    public function UIShowMessage(string $Message): void
-    {
-        $this->UpdateFormField('InfoMessage', 'visible', true);
-        $this->UpdateFormField('InfoMessageLabel', 'caption', $Message);
-    }
-
     #################### Request Action
 
     public function RequestAction($Ident, $Value)
     {
+        $upperColor = $this->GetValue('UpperLightUnitColor');
+        $upperBrightness = $this->GetValue('UpperLightUnitBrightness');
+        $upperMode = $this->GetValue('UpperLightUnitMode');
+
+        $lowerColor = $this->GetValue('LowerLightUnitColor');
+        $lowerBrightness = $this->GetValue('LowerLightUnitBrightness');
+        $lowerMode = $this->GetValue('LowerLightUnitMode');
+
         switch ($Ident) {
             case 'Active':
                 $this->ToggleActive($Value);
@@ -392,25 +440,61 @@ class StatusanzeigeHomematicIP extends IPSModule
 
             case 'UpperLightUnitColor':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetColor(0, $Value, true);
+                    if ($this->ReadPropertyBoolean('UpperLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(0, $Value, $upperBrightness, $upperMode);
+                    } else {
+                        $this->SetColor(0, $Value);
+                    }
                 }
                 break;
 
             case 'UpperLightUnitBrightness':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetBrightness(0, $Value, true);
+                    if ($this->ReadPropertyBoolean('UpperLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(0, $upperColor, $Value, $upperMode);
+                    } else {
+                        $this->SetBrightness(0, $Value);
+                    }
+                }
+                break;
+
+            case 'UpperLightUnitMode':
+                if (!$this->CheckMaintenance()) {
+                    if ($this->ReadPropertyBoolean('UpperLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(0, $upperColor, $upperBrightness, $Value);
+                    } else {
+                        $this->SetMode(0, $Value);
+                    }
                 }
                 break;
 
             case 'LowerLightUnitColor':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetColor(1, $Value, true);
+                    if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(1, $Value, $upperBrightness, $upperMode);
+                    } else {
+                        $this->SetColor(1, $Value);
+                    }
                 }
                 break;
 
             case 'LowerLightUnitBrightness':
                 if (!$this->CheckMaintenance()) {
-                    $this->SetBrightness(1, $Value, true);
+                    if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(1, $upperColor, $Value, $upperMode);
+                    } else {
+                        $this->SetBrightness(1, $Value);
+                    }
+                }
+                break;
+
+            case 'LowerLightUnitMode':
+                if (!$this->CheckMaintenance()) {
+                    if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
+                        $this->SetCombinedParameters(1, $upperColor, $upperBrightness, $Value);
+                    } else {
+                        $this->SetMode(1, $Value);
+                    }
                 }
                 break;
 

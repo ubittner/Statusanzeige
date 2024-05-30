@@ -4,7 +4,7 @@
  * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_ConfigurationForm.php
  * @author        Ulrich Bittner
- * @copyright     2023 Ulrich Bittner
+ * @copyright     2023,2024 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
@@ -198,6 +198,13 @@ trait SAHMIP_ConfigurationForm
             $enableUpperLightUnitDeviceColorButton = true;
         }
 
+        //Upper light unit color behaviour
+        $upperLightUnitDeviceColorBehaviourVariable = $this->ReadPropertyInteger('UpperLightUnitDeviceColorBehaviour');
+        $enableUpperLightUnitDeviceColorBehaviourButton = false;
+        if ($upperLightUnitDeviceColorBehaviourVariable > 1 && @IPS_ObjectExists($upperLightUnitDeviceColorBehaviourVariable)) {
+            $enableUpperLightUnitDeviceColorBehaviourButton = true;
+        }
+
         //Upper light unit brightness
         $upperLightUnitDeviceBrightnessVariable = $this->ReadPropertyInteger('UpperLightUnitDeviceBrightness');
         $enableUpperLightUnitDeviceBrightnessButton = false;
@@ -305,12 +312,53 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
+                        'type'    => 'NumberSpinner',
+                        'name'    => 'UpperLightUnitSwitchingDelay',
+                        'caption' => 'Schaltverzögerung',
+                        'minimum' => 0,
+                        'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'  => 'RowLayout',
+                        'items' => [
+                            [
+                                'type'    => 'CheckBox',
+                                'name'    => 'UpperLightUnitUseCombinedParameter',
+                                'caption' => 'Kombinierte Parameter verwenden',
+                                'width'   => '600px'
+                            ],
+                            [
+                                'type'    => 'PopupButton',
+                                'caption' => 'Info',
+                                'popup'   => [
+                                    'caption' => 'Info',
+                                    'items'   => [
+                                        [
+                                            'type'    => 'Label',
+                                            'caption' => "Unterstützte Geräte:\nHmIP-BSL mit Firmware Version mind. 2.0.2 und CCU(3) Firmware Version mind. 3.75.6!\n\nBei aktivierter Funktion werden Farbe, Helligkeit und Modus in einem Schaltbefehl an das Gerät gesendet."
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Farbe',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
                         'type'  => 'RowLayout',
                         'items' => [
                             [
                                 'type'     => 'SelectVariable',
                                 'name'     => 'UpperLightUnitDeviceColor',
-                                'caption'  => 'Variable COLOR (Farbe)',
+                                'caption'  => 'Variable COLOR',
                                 'width'    => '600px',
                                 'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "UpperLightUnitDeviceColorConfigurationButton", "ID " . $UpperLightUnitDeviceColor . " bearbeiten", $UpperLightUnitDeviceColor);'
                             ],
@@ -324,12 +372,22 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Helligkeit',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
                         'type'  => 'RowLayout',
                         'items' => [
                             [
                                 'type'     => 'SelectVariable',
                                 'name'     => 'UpperLightUnitDeviceBrightness',
-                                'caption'  => 'Variable LEVEL (Helligkeit)',
+                                'caption'  => 'Variable LEVEL',
                                 'width'    => '600px',
                                 'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "UpperLightUnitDeviceBrightnessConfigurationButton", "ID " . $UpperLightUnitDeviceBrightness . " bearbeiten", $UpperLightUnitDeviceBrightness);'
                             ],
@@ -343,11 +401,33 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
-                        'type'    => 'NumberSpinner',
-                        'name'    => 'UpperLightUnitSwitchingDelay',
-                        'caption' => 'Schaltverzögerung',
-                        'minimum' => 0,
-                        'suffix'  => 'Millisekunden'
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Modus',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
+                        'type'  => 'RowLayout',
+                        'items' => [
+                            [
+                                'type'     => 'SelectVariable',
+                                'name'     => 'UpperLightUnitDeviceColorBehaviour',
+                                'caption'  => 'Variable COLOR_BEHAVIOUR',
+                                'width'    => '600px',
+                                'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "UpperLightUnitDeviceColorBehaviourConfigurationButton", "ID " . $UpperLightUnitDeviceColorBehaviour . " bearbeiten", $UpperLightUnitDeviceColorBehaviour);'
+                            ],
+                            [
+                                'type'     => 'OpenObjectButton',
+                                'name'     => 'UpperLightUnitDeviceColorBehaviourConfigurationButton',
+                                'caption'  => 'ID ' . $upperLightUnitDeviceColorBehaviourVariable . ' bearbeiten',
+                                'visible'  => $enableUpperLightUnitDeviceColorBehaviourButton,
+                                'objectID' => $upperLightUnitDeviceColorBehaviourVariable
+                            ]
+                        ]
                     ],
                     [
                         'type'    => 'Label',
@@ -496,8 +576,8 @@ trait SAHMIP_ConfigurationForm
                                 'onClick' => self::MODULE_PREFIX . '_ModifyTriggerListButton($id, "UpperLightUnitTriggerListConfigurationButton", $UpperLightUnitTriggerList["PrimaryCondition"]);',
                                 'width'   => '300px',
 
-                                'add'     => '',
-                                'edit'    => [
+                                'add'  => '',
+                                'edit' => [
                                     'type' => 'ValidationTextBox'
                                 ]
                             ],
@@ -576,6 +656,69 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
+                                'caption' => 'Modus',
+                                'name'    => 'Mode',
+                                'width'   => '200px',
+                                'add'     => 1,
+                                'edit'    => [
+                                    'type'    => 'Select',
+                                    'options' => [
+                                        [
+                                            'caption' => 'Beleuchtung aus',
+                                            'value'   => 0
+                                        ],
+                                        [
+                                            'caption' => 'Dauerhaft ein',
+                                            'value'   => 1
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Blinken',
+                                            'value'   => 2
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Blinken',
+                                            'value'   => 3
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Blinken',
+                                            'value'   => 4
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Blitzen',
+                                            'value'   => 5
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Blitzen',
+                                            'value'   => 6
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Blitzen',
+                                            'value'   => 7
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Pulsieren',
+                                            'value'   => 8
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Pulsieren',
+                                            'value'   => 9
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Pulsieren',
+                                            'value'   => 10
+                                        ],
+                                        [
+                                            'caption' => 'Vorheriger Wert',
+                                            'value'   => 11
+                                        ],
+                                        [
+                                            'caption' => 'Ohne Funktion',
+                                            'value'   => 12
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
                                 'caption' => 'Signalisierung erzwingen',
                                 'name'    => 'ForceSignaling',
                                 'width'   => '200px',
@@ -620,6 +763,13 @@ trait SAHMIP_ConfigurationForm
         $enableLowerLightUnitDeviceColorButton = false;
         if ($lowerLightUnitDeviceColorVariable > 1 && @IPS_ObjectExists($lowerLightUnitDeviceColorVariable)) {
             $enableLowerLightUnitDeviceColorButton = true;
+        }
+
+        //Upper light unit color behaviour
+        $lowerLightUnitDeviceColorBehaviourVariable = $this->ReadPropertyInteger('LowerLightUnitDeviceColorBehaviour');
+        $enableLowerLightUnitDeviceColorBehaviourButton = false;
+        if ($lowerLightUnitDeviceColorBehaviourVariable > 1 && @IPS_ObjectExists($lowerLightUnitDeviceColorBehaviourVariable)) {
+            $enableLowerLightUnitDeviceColorBehaviourButton = true;
         }
 
         //Lower light unit brightness
@@ -725,12 +875,53 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
+                        'type'    => 'NumberSpinner',
+                        'name'    => 'LowerLightUnitSwitchingDelay',
+                        'caption' => 'Schaltverzögerung',
+                        'minimum' => 0,
+                        'suffix'  => 'Millisekunden'
+                    ],
+                    [
+                        'type'  => 'RowLayout',
+                        'items' => [
+                            [
+                                'type'    => 'CheckBox',
+                                'name'    => 'LowerLightUnitUseCombinedParameter',
+                                'caption' => 'Kombinierte Parameter verwenden',
+                                'width'   => '600px'
+                            ],
+                            [
+                                'type'    => 'PopupButton',
+                                'caption' => 'Info',
+                                'popup'   => [
+                                    'caption' => 'Info',
+                                    'items'   => [
+                                        [
+                                            'type'    => 'Label',
+                                            'caption' => "Unterstützte Geräte:\nHmIP-BSL mit Firmware Version mind. 2.0.2 und CCU(3) Firmware Version mind. 3.75.6!\n\nBei aktivierter Funktion werden Farbe, Helligkeit und Modus in einem Schaltbefehl an das Gerät gesendet."
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Farbe',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
                         'type'  => 'RowLayout',
                         'items' => [
                             [
                                 'type'     => 'SelectVariable',
                                 'name'     => 'LowerLightUnitDeviceColor',
-                                'caption'  => 'Variable COLOR (Farbe)',
+                                'caption'  => 'Variable COLOR',
                                 'width'    => '600px',
                                 'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "LowerLightUnitDeviceColorConfigurationButton", "ID " . $LowerLightUnitDeviceColor . " bearbeiten", $LowerLightUnitDeviceColor);'
                             ],
@@ -744,12 +935,22 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Helligkeit',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
                         'type'  => 'RowLayout',
                         'items' => [
                             [
                                 'type'     => 'SelectVariable',
                                 'name'     => 'LowerLightUnitDeviceBrightness',
-                                'caption'  => 'Variable LEVEL (Helligkeit)',
+                                'caption'  => 'Variable LEVEL',
                                 'width'    => '600px',
                                 'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "LowerLightUnitDeviceBrightnessConfigurationButton", "ID " . $LowerLightUnitDeviceBrightness . " bearbeiten", $LowerLightUnitDeviceBrightness);'
                             ],
@@ -763,11 +964,33 @@ trait SAHMIP_ConfigurationForm
                         ]
                     ],
                     [
-                        'type'    => 'NumberSpinner',
-                        'name'    => 'LowerLightUnitSwitchingDelay',
-                        'caption' => 'Schaltverzögerung',
-                        'minimum' => 0,
-                        'suffix'  => 'Millisekunden'
+                        'type'    => 'Label',
+                        'caption' => ' '
+                    ],
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Modus',
+                        'italic'  => true,
+                        'bold'    => true
+                    ],
+                    [
+                        'type'  => 'RowLayout',
+                        'items' => [
+                            [
+                                'type'     => 'SelectVariable',
+                                'name'     => 'LowerLightUnitDeviceColorBehaviour',
+                                'caption'  => 'Variable COLOR_BEHAVIOUR',
+                                'width'    => '600px',
+                                'onChange' => self::MODULE_PREFIX . '_ModifyButton($id, "LowerLightUnitDeviceColorBehaviourConfigurationButton", "ID " . $LowerLightUnitDeviceColorBehaviour . " bearbeiten", $LowerLightUnitDeviceColorBehaviour);'
+                            ],
+                            [
+                                'type'     => 'OpenObjectButton',
+                                'name'     => 'LowerLightUnitDeviceColorBehaviourConfigurationButton',
+                                'caption'  => 'ID ' . $lowerLightUnitDeviceColorBehaviourVariable . ' bearbeiten',
+                                'visible'  => $enableLowerLightUnitDeviceColorBehaviourButton,
+                                'objectID' => $lowerLightUnitDeviceColorBehaviourVariable
+                            ]
+                        ]
                     ],
                     [
                         'type'    => 'Label',
@@ -996,6 +1219,69 @@ trait SAHMIP_ConfigurationForm
                                 ]
                             ],
                             [
+                                'caption' => 'Modus',
+                                'name'    => 'Mode',
+                                'width'   => '200px',
+                                'add'     => 1,
+                                'edit'    => [
+                                    'type'    => 'Select',
+                                    'options' => [
+                                        [
+                                            'caption' => 'Beleuchtung aus',
+                                            'value'   => 0
+                                        ],
+                                        [
+                                            'caption' => 'Dauerhaft ein',
+                                            'value'   => 1
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Blinken',
+                                            'value'   => 2
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Blinken',
+                                            'value'   => 3
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Blinken',
+                                            'value'   => 4
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Blitzen',
+                                            'value'   => 5
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Blitzen',
+                                            'value'   => 6
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Blitzen',
+                                            'value'   => 7
+                                        ],
+                                        [
+                                            'caption' => 'Langsames Pulsieren',
+                                            'value'   => 8
+                                        ],
+                                        [
+                                            'caption' => 'Mittleres Pulsieren',
+                                            'value'   => 9
+                                        ],
+                                        [
+                                            'caption' => 'Schnelles Pulsieren',
+                                            'value'   => 10
+                                        ],
+                                        [
+                                            'caption' => 'Vorheriger Wert',
+                                            'value'   => 11
+                                        ],
+                                        [
+                                            'caption' => 'Ohne Funktion',
+                                            'value'   => 12
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            [
                                 'caption' => 'Signalisierung erzwingen',
                                 'name'    => 'ForceSignaling',
                                 'width'   => '200px',
@@ -1097,13 +1383,24 @@ trait SAHMIP_ConfigurationForm
             'items'   => [
                 [
                     'type'    => 'Label',
-                    'caption' => 'Deaktivierung',
+                    'caption' => 'Automatische Deaktivierung',
                     'italic'  => true,
                     'bold'    => true
                 ],
                 [
-                    'type'    => 'Label',
-                    'caption' => 'Nachfolgende Funktionen werden bei Deaktivierung verwendet.'
+                    'type'    => 'CheckBox',
+                    'name'    => 'UseAutomaticDeactivation',
+                    'caption' => 'Automatische Deaktivierung'
+                ],
+                [
+                    'type'    => 'SelectTime',
+                    'name'    => 'AutomaticDeactivationStartTime',
+                    'caption' => 'Startzeit'
+                ],
+                [
+                    'type'    => 'SelectTime',
+                    'name'    => 'AutomaticDeactivationEndTime',
+                    'caption' => 'Endzeit'
                 ],
                 [
                     'type'    => 'Label',
@@ -1111,8 +1408,15 @@ trait SAHMIP_ConfigurationForm
                 ],
                 [
                     'type'    => 'Label',
+                    'caption' => 'Deaktivierung',
+                    'italic'  => true,
+                    'bold'    => true
+                ],
+                [
+                    'type'    => 'Label',
                     'caption' => 'Obere Leuchteinheit',
-                    'italic'  => true
+                    'italic'  => true,
+                    'bold'    => true
                 ],
                 [
                     'type'    => 'CheckBox',
@@ -1172,13 +1476,78 @@ trait SAHMIP_ConfigurationForm
                     'maximum' => 100
                 ],
                 [
+                    'type'    => 'CheckBox',
+                    'name'    => 'DeactivateUpperLightUnitChangeMode',
+                    'caption' => 'Modus ändern'
+                ],
+                [
+                    'type'    => 'Select',
+                    'name'    => 'DeactivationUpperLightUnitMode',
+                    'caption' => 'Modus',
+                    'options' => [
+                        [
+                            'caption' => 'Beleuchtung aus',
+                            'value'   => 0
+                        ],
+                        [
+                            'caption' => 'Dauerhaft ein',
+                            'value'   => 1
+                        ],
+                        [
+                            'caption' => 'Langsames Blinken',
+                            'value'   => 2
+                        ],
+                        [
+                            'caption' => 'Mittleres Blinken',
+                            'value'   => 3
+                        ],
+                        [
+                            'caption' => 'Schnelles Blinken',
+                            'value'   => 4
+                        ],
+                        [
+                            'caption' => 'Langsames Blitzen',
+                            'value'   => 5
+                        ],
+                        [
+                            'caption' => 'Mittleres Blitzen',
+                            'value'   => 6
+                        ],
+                        [
+                            'caption' => 'Schnelles Blitzen',
+                            'value'   => 7
+                        ],
+                        [
+                            'caption' => 'Langsames Pulsieren',
+                            'value'   => 8
+                        ],
+                        [
+                            'caption' => 'Mittleres Pulsieren',
+                            'value'   => 9
+                        ],
+                        [
+                            'caption' => 'Schnelles Pulsieren',
+                            'value'   => 10
+                        ],
+                        [
+                            'caption' => 'Vorheriger Wert',
+                            'value'   => 11
+                        ],
+                        [
+                            'caption' => 'Ohne Funktion',
+                            'value'   => 12
+                        ]
+                    ]
+                ],
+                [
                     'type'    => 'Label',
                     'caption' => ' '
                 ],
                 [
                     'type'    => 'Label',
                     'caption' => 'Untere Leuchteinheit',
-                    'italic'  => true
+                    'italic'  => true,
+                    'bold'    => true
                 ],
                 [
                     'type'    => 'CheckBox',
@@ -1238,31 +1607,103 @@ trait SAHMIP_ConfigurationForm
                     'maximum' => 100
                 ],
                 [
+                    'type'    => 'CheckBox',
+                    'name'    => 'DeactivateLowerLightUnitChangeMode',
+                    'caption' => 'Modus ändern'
+                ],
+                [
+                    'type'    => 'Select',
+                    'name'    => 'DeactivationLowerLightUnitMode',
+                    'caption' => 'Modus',
+                    'options' => [
+                        [
+                            'caption' => 'Beleuchtung aus',
+                            'value'   => 0
+                        ],
+                        [
+                            'caption' => 'Dauerhaft ein',
+                            'value'   => 1
+                        ],
+                        [
+                            'caption' => 'Langsames Blinken',
+                            'value'   => 2
+                        ],
+                        [
+                            'caption' => 'Mittleres Blinken',
+                            'value'   => 3
+                        ],
+                        [
+                            'caption' => 'Schnelles Blinken',
+                            'value'   => 4
+                        ],
+                        [
+                            'caption' => 'Langsames Blitzen',
+                            'value'   => 5
+                        ],
+                        [
+                            'caption' => 'Mittleres Blitzen',
+                            'value'   => 6
+                        ],
+                        [
+                            'caption' => 'Schnelles Blitzen',
+                            'value'   => 7
+                        ],
+                        [
+                            'caption' => 'Langsames Pulsieren',
+                            'value'   => 8
+                        ],
+                        [
+                            'caption' => 'Mittleres Pulsieren',
+                            'value'   => 9
+                        ],
+                        [
+                            'caption' => 'Schnelles Pulsieren',
+                            'value'   => 10
+                        ],
+                        [
+                            'caption' => 'Vorheriger Wert',
+                            'value'   => 11
+                        ],
+                        [
+                            'caption' => 'Ohne Funktion',
+                            'value'   => 12
+                        ]
+                    ]
+                ],
+                [
                     'type'    => 'Label',
                     'caption' => ' '
                 ],
                 [
-                    'type'    => 'Label',
-                    'caption' => 'Reaktivierung',
-                    'italic'  => true,
-                    'bold'    => true
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => 'Nachfolgende Funktionen werden nur verwendet, wenn keine Auslöser genutzt werden.'
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => 'Ansonsten wird anhand der Auslöserliste geschaltet.'
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => ' '
+                    'type'  => 'RowLayout',
+                    'items' => [
+                        [
+                            'type'    => 'Label',
+                            'caption' => 'Reaktivierung',
+                            'width'   => '300px',
+                            'italic'  => true,
+                            'bold'    => true
+                        ],
+                        [
+                            'type'    => 'PopupButton',
+                            'caption' => 'Info',
+                            'popup'   => [
+                                'caption' => 'Info',
+                                'items'   => [
+                                    [
+                                        'type'    => 'Label',
+                                        'caption' => "Nachfolgende Funktionen werden nur verwendet, wenn keine Auslöser genutzt werden.\nAnsonsten wird anhand der Auslöserliste geschaltet."
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
                 ],
                 [
                     'type'    => 'Label',
                     'caption' => 'Obere Leuchteinheit',
-                    'italic'  => true
+                    'italic'  => true,
+                    'bold'    => true
                 ],
                 [
                     'type'    => 'CheckBox',
@@ -1275,13 +1716,19 @@ trait SAHMIP_ConfigurationForm
                     'caption' => 'Letzte Helligkeit'
                 ],
                 [
+                    'type'    => 'CheckBox',
+                    'name'    => 'ReactivateUpperLightUnitLastMode',
+                    'caption' => 'Letzter Modus'
+                ],
+                [
                     'type'    => 'Label',
                     'caption' => ' '
                 ],
                 [
                     'type'    => 'Label',
                     'caption' => 'Untere Leuchteinheit',
-                    'italic'  => true
+                    'italic'  => true,
+                    'bold'    => true
                 ],
                 [
                     'type'    => 'CheckBox',
@@ -1294,29 +1741,9 @@ trait SAHMIP_ConfigurationForm
                     'caption' => 'Letzte Helligkeit'
                 ],
                 [
-                    'type'    => 'Label',
-                    'caption' => ' '
-                ],
-                [
-                    'type'    => 'Label',
-                    'caption' => 'Automatische Deaktivierung',
-                    'italic'  => true,
-                    'bold'    => true
-                ],
-                [
                     'type'    => 'CheckBox',
-                    'name'    => 'UseAutomaticDeactivation',
-                    'caption' => 'Automatische Deaktivierung'
-                ],
-                [
-                    'type'    => 'SelectTime',
-                    'name'    => 'AutomaticDeactivationStartTime',
-                    'caption' => 'Startzeit'
-                ],
-                [
-                    'type'    => 'SelectTime',
-                    'name'    => 'AutomaticDeactivationEndTime',
-                    'caption' => 'Endzeit'
+                    'name'    => 'ReactivateLowerLightUnitLastMode',
+                    'caption' => 'Letzter Modus'
                 ]
             ]
         ];
@@ -1353,6 +1780,11 @@ trait SAHMIP_ConfigurationForm
                     'caption' => 'Helligkeit'
                 ],
                 [
+                    'type'    => 'CheckBox',
+                    'name'    => 'EnableUpperLightUnitMode',
+                    'caption' => 'Modus'
+                ],
+                [
                     'type'    => 'Label',
                     'caption' => ' '
                 ],
@@ -1371,7 +1803,12 @@ trait SAHMIP_ConfigurationForm
                     'type'    => 'CheckBox',
                     'name'    => 'EnableLowerLightUnitBrightness',
                     'caption' => 'Helligkeit'
-                ]
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'EnableLowerLightUnitMode',
+                    'caption' => 'Modus'
+                ],
             ]
         ];
 
