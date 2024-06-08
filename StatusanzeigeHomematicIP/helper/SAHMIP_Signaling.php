@@ -70,10 +70,10 @@ trait SAHMIP_Signaling
 
         $actualColor = $this->GetValue($unit . 'Color');
 
-        //Set values, changes only!
-        if ($actualColor != $Color) {
-            $this->SetValue($unit . 'Color', $Color);
-        } else {
+        //Set value
+        $this->SetValue($unit . 'Color', $Color);
+        //Verify device color
+        if ($actualColor == $Color) {
             //Verify device color
             $verifyColor = $this->VerifyDeviceColor($LightUnit, $Color);
             if (!$verifyColor) {
@@ -169,11 +169,10 @@ trait SAHMIP_Signaling
 
         $actualBrightness = $this->GetValue($unit . 'Brightness');
 
-        //Set values, changes only!
-        if ($actualBrightness != $Brightness) {
-            $this->SetValue($unit . 'Brightness', $Brightness);
-        } else {
-            //Verify device brightness
+        //Set value
+        $this->SetValue($unit . 'Brightness', $Brightness);
+        //Verify device brightness
+        if ($actualBrightness == $Brightness) {
             $verifiyBrightness = $this->VerifyDeviceBrightness($LightUnit, $Brightness);
             if (!$verifiyBrightness) {
                 $ForceBrightness = true;
@@ -281,11 +280,10 @@ trait SAHMIP_Signaling
 
         $actualMode = $this->GetValue($unit . 'Mode');
 
-        //Set values, changes only!
-        if ($actualMode != $Mode) {
-            $this->SetValue($unit . 'Mode', $Mode);
-        } else {
-            //Verify device mode
+        //Set value
+        $this->SetValue($unit . 'Mode', $Mode);
+        //Verify device mode
+        if ($actualMode == $Mode) {
             $verifyMode = $this->VerifyDeviceMode($LightUnit, $Mode);
             if (!$verifyMode) {
                 $ForceMode = true;
@@ -410,31 +408,30 @@ trait SAHMIP_Signaling
         $actualBrightness = $this->GetValue($unit . 'Brightness');
         $actualMode = $this->GetValue($unit . 'Mode');
 
-        //Set values, changes only!
-        if ($actualColor != $Color) {
-            $this->SetValue($unit . 'Color', $Color);
-        } else {
-            //Verify device color
+        //Set color
+        $this->SetValue($unit . 'Color', $Color);
+        //Verify device color
+        if ($actualColor == $Color) {
             $verifyColor = $this->VerifyDeviceColor($LightUnit, $Color);
             if (!$verifyColor) {
                 $Force = true;
             }
         }
 
-        if ($actualBrightness != $Brightness) {
-            $this->SetValue($unit . 'Brightness', $Brightness);
-        } else {
-            //Verify device brightness
+        //Set brightness
+        $this->SetValue($unit . 'Brightness', $Brightness);
+        //Verify device brightness
+        if ($actualBrightness == $Brightness) {
             $verifyMode = $this->VerifyDeviceBrightness($LightUnit, $Brightness);
             if (!$verifyMode) {
                 $Force = true;
             }
         }
 
-        if ($actualMode != $Mode) {
-            $this->SetValue($unit . 'Mode', $Mode);
-        } else {
-            //Verify device mode
+        //Set mode
+        $this->SetValue($unit . 'Mode', $Mode);
+        //Verify device mode
+        if ($actualMode == $Mode) {
             $verifyMode = $this->VerifyDeviceMode($LightUnit, $Mode);
             if (!$verifyMode) {
                 $Force = true;
