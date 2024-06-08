@@ -470,6 +470,12 @@ trait SAHMIP_ConfigurationForm
                                             'save'    => false
                                         ],
                                         [
+                                            'name'    => 'Priority',
+                                            'caption' => 'Priorität',
+                                            'width'   => '100px',
+                                            'save'    => false
+                                        ],
+                                        [
                                             'name'    => 'Designation',
                                             'caption' => 'Bezeichnung',
                                             'width'   => '400px',
@@ -1037,6 +1043,12 @@ trait SAHMIP_ConfigurationForm
                                             'caption' => 'ID',
                                             'width'   => '80px',
                                             'onClick' => self::MODULE_PREFIX . '_ModifyActualVariableStatesConfigurationButton($id, "LowerLightUnitActualVariableStateConfigurationButton", $LowerLightUnitActualVariableStateList["SensorID"]);',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Priority',
+                                            'caption' => 'Priorität',
+                                            'width'   => '100px',
                                             'save'    => false
                                         ],
                                         [

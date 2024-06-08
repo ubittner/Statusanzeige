@@ -163,7 +163,7 @@ trait SAHMIP_TriggerCondition
                 if ($variableUpdate != 0) {
                     $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
                 }
-                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Priority' =>  $variable['Priority'], 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
             }
         }
         $amount = count($actualVariableStates);
@@ -322,7 +322,7 @@ trait SAHMIP_TriggerCondition
                 if ($variableUpdate != 0) {
                     $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
                 }
-                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Priority' =>  $variable['Priority'], 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
             }
         }
         $amount = count($actualVariableStates);
