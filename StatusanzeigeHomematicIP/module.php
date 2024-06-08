@@ -472,7 +472,7 @@ class StatusanzeigeHomematicIP extends IPSModule
             case 'LowerLightUnitColor':
                 if (!$this->CheckMaintenance()) {
                     if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
-                        $this->SetCombinedParameters(1, $Value, $upperBrightness, $upperMode);
+                        $this->SetCombinedParameters(1, $Value, $lowerBrightness, $lowerMode);
                     } else {
                         $this->SetColor(1, $Value);
                     }
@@ -482,7 +482,7 @@ class StatusanzeigeHomematicIP extends IPSModule
             case 'LowerLightUnitBrightness':
                 if (!$this->CheckMaintenance()) {
                     if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
-                        $this->SetCombinedParameters(1, $upperColor, $Value, $upperMode);
+                        $this->SetCombinedParameters(1, $lowerColor, $Value, $lowerMode);
                     } else {
                         $this->SetBrightness(1, $Value);
                     }
@@ -492,7 +492,7 @@ class StatusanzeigeHomematicIP extends IPSModule
             case 'LowerLightUnitMode':
                 if (!$this->CheckMaintenance()) {
                     if ($this->ReadPropertyBoolean('LowerLightUnitUseCombinedParameter')) {
-                        $this->SetCombinedParameters(1, $upperColor, $upperBrightness, $Value);
+                        $this->SetCombinedParameters(1, $lowerColor, $lowerBrightness, $Value);
                     } else {
                         $this->SetMode(1, $Value);
                     }
