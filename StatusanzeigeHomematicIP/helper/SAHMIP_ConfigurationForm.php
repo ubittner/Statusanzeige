@@ -488,6 +488,12 @@ trait SAHMIP_ConfigurationForm
                                             'save'    => false
                                         ],
                                         [
+                                            'name'    => 'Mode',
+                                            'caption' => 'Modus',
+                                            'width'   => '200px',
+                                            'save'    => false
+                                        ],
+                                        [
                                             'name'    => 'LastUpdate',
                                             'caption' => 'Letzte Aktualisierung',
                                             'width'   => '200px',
@@ -1049,6 +1055,12 @@ trait SAHMIP_ConfigurationForm
                                             'name'    => 'Brightness',
                                             'caption' => 'Helligkeit',
                                             'width'   => '120px',
+                                            'save'    => false
+                                        ],
+                                        [
+                                            'name'    => 'Mode',
+                                            'caption' => 'Modus',
+                                            'width'   => '200px',
                                             'save'    => false
                                         ],
                                         [

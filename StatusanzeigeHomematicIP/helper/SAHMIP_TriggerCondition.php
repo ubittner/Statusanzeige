@@ -100,12 +100,70 @@ trait SAHMIP_TriggerCondition
                         $colorName = 'Weiß';
                         break;
                 }
+                //Mode
+                $modeName = '';
+                if (array_key_exists('Mode', $variable)) {
+                    $mode = $variable['Mode'];
+                    switch ($mode) {
+                        case 0:
+                            $modeName = 'Beleuchtung aus';
+                            break;
+
+                        case 1:
+                            $modeName = 'Dauerhaft ein';
+                            break;
+
+                        case 2:
+                            $modeName = 'Langsames Blinken';
+                            break;
+
+                        case 3:
+                            $modeName = 'Mittleres Blinken';
+                            break;
+
+                        case 4:
+                            $modeName = 'Schnelles Blinken';
+                            break;
+
+                        case 5:
+                            $modeName = 'Langsames Blitzen';
+                            break;
+
+                        case 6:
+                            $modeName = 'Mittleres Blitzen';
+                            break;
+
+                        case 7:
+                            $modeName = 'Schnelles Blitzen';
+                            break;
+
+                        case 8:
+                            $modeName = 'Langsames Pulsieren';
+                            break;
+
+                        case 9:
+                            $modeName = 'Mittleres Pulsieren';
+                            break;
+
+                        case 10:
+                            $modeName = 'Schnelles Pulsieren';
+                            break;
+
+                        case 11:
+                            $modeName = 'Vorheriger Wert';
+                            break;
+
+                        case 12:
+                            $modeName = 'Ohne Funktion';
+                            break;
+                    }
+                }
                 $variableUpdate = IPS_GetVariable($sensorID)['VariableUpdated']; //timestamp or 0 = never
                 $lastUpdate = 'Nie';
                 if ($variableUpdate != 0) {
                     $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
                 }
-                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'LastUpdate' => $lastUpdate];
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
             }
         }
         $amount = count($actualVariableStates);
@@ -201,12 +259,70 @@ trait SAHMIP_TriggerCondition
                         $colorName = 'Weiß';
                         break;
                 }
+                //Mode
+                $modeName = '';
+                if (array_key_exists('Mode', $variable)) {
+                    $mode = $variable['Mode'];
+                    switch ($mode) {
+                        case 0:
+                            $modeName = 'Beleuchtung aus';
+                            break;
+
+                        case 1:
+                            $modeName = 'Dauerhaft ein';
+                            break;
+
+                        case 2:
+                            $modeName = 'Langsames Blinken';
+                            break;
+
+                        case 3:
+                            $modeName = 'Mittleres Blinken';
+                            break;
+
+                        case 4:
+                            $modeName = 'Schnelles Blinken';
+                            break;
+
+                        case 5:
+                            $modeName = 'Langsames Blitzen';
+                            break;
+
+                        case 6:
+                            $modeName = 'Mittleres Blitzen';
+                            break;
+
+                        case 7:
+                            $modeName = 'Schnelles Blitzen';
+                            break;
+
+                        case 8:
+                            $modeName = 'Langsames Pulsieren';
+                            break;
+
+                        case 9:
+                            $modeName = 'Mittleres Pulsieren';
+                            break;
+
+                        case 10:
+                            $modeName = 'Schnelles Pulsieren';
+                            break;
+
+                        case 11:
+                            $modeName = 'Vorheriger Wert';
+                            break;
+
+                        case 12:
+                            $modeName = 'Ohne Funktion';
+                            break;
+                    }
+                }
                 $variableUpdate = IPS_GetVariable($sensorID)['VariableUpdated']; //timestamp or 0 = never
                 $lastUpdate = 'Nie';
                 if ($variableUpdate != 0) {
                     $lastUpdate = date('d.m.Y H:i:s', $variableUpdate);
                 }
-                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'LastUpdate' => $lastUpdate];
+                $actualVariableStates[] = ['ActualStatus' => $stateName, 'SensorID' => $sensorID, 'Designation' =>  $variable['Designation'], 'Color' =>  $colorName, 'Brightness' =>  $variable['Brightness'], 'Mode' =>  $modeName, 'LastUpdate' => $lastUpdate];
             }
         }
         $amount = count($actualVariableStates);
