@@ -1331,6 +1331,11 @@ trait SAHMIP_ConfigurationForm
                         'caption' => 'Intervall',
                         'minimum' => 0,
                         'suffix'  => 'Sekunden'
+                    ],
+                    [
+                        'type'    => 'CheckBox',
+                        'name'    => 'ForceSignaling',
+                        'caption' => 'Signalisierung erzwingen'
                     ]
                 ]
             ];

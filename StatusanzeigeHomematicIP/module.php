@@ -68,6 +68,7 @@ class StatusanzeigeHomematicIP extends IPSModule
         //Automatic status update
         $this->RegisterPropertyBoolean('AutomaticStatusUpdate', false);
         $this->RegisterPropertyInteger('CheckStatusInterval', 1200);
+        $this->RegisterPropertyBoolean('ForceSignaling', true);
 
         //Command control
         $this->RegisterPropertyInteger('CommandControl', 0);
@@ -220,7 +221,7 @@ class StatusanzeigeHomematicIP extends IPSModule
 
         $this->RegisterTimer('StartAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StartAutomaticDeactivation(' . $this->InstanceID . ');');
         $this->RegisterTimer('StopAutomaticDeactivation', 0, self::MODULE_PREFIX . '_StopAutomaticDeactivation(' . $this->InstanceID . ');');
-        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_UpdateLightUnits(' . $this->InstanceID . ', true);');
+        $this->RegisterTimer('CheckStatus', 0, self::MODULE_PREFIX . '_CheckStatus(' . $this->InstanceID . ');');
     }
 
     public function ApplyChanges()

@@ -195,6 +195,17 @@ trait SAHMIP_Control
     }
 
     /**
+     * Checks the actual status, normally used by the CheckStatus timer.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function CheckStatus(): void
+    {
+        $this->UpdateLightUnits($this->ReadPropertyBoolean('ForceSignaling'));
+    }
+
+    /**
      * Updates the light units.
      * Either via the trigger list or manual mode.
      *
