@@ -47,12 +47,12 @@ Stand: 29.05.2024
                        +-----------------------------+
                        | Statusanzeige HmIP (Modul)  |
                        |                             |
-Auslöser <-------------+ Obere Leuchteinheit         |<------------- externe Aktion
+Auslöser ------------->| Obere Leuchteinheit         |<------------- externe Aktion
                        |   Farbe                     |
                        |   Helligkeit                |
                        |   Modus                     |
                        |                             |
-Auslöser <-------------+ Untere Leuchteinheit        |<------------- externe Aktion
+Auslöser ------------->| Untere Leuchteinheit        |<------------- externe Aktion
                        |   Farbe                     |
                        |   Helligkeit                |
                        |   Modus                     |
