@@ -4,7 +4,7 @@
  * @project       Statusanzeige/StatusanzeigeHomematicIP/helper/
  * @file          SAHMIP_Signaling.php
  * @author        Ulrich Bittner
- * @copyright     2023 Ulrich Bittner
+ * @copyright     2023,2024 Ulrich Bittner
  * @license       https://creativecommons.org/licenses/by-nc-sa/4.0/ CC BY-NC-SA 4.0
  */
 
@@ -16,222 +16,28 @@ declare(strict_types=1);
 
 trait SAHMIP_Signaling
 {
+    ########## Action
+
     /**
-     * Sets the color and brightness for the light unit.
+     * Sets the color.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit,
-     * 1 =  Lower light unit
+     * 0 =  upper light unit,
+     * 1 =  lower light unit
      *
      * @param int $Color
-     * 0 =  black / off,
+     * 0 =  black or off,
      * 1 =  blue,
      * 2 =  green,
      * 3 =  turquoise,
      * 4 =  red,
      * 5 =  violet,
      * 6 =  yellow,
-     * 7 =  white,
-     *
-     * @param int $Brightness
-     *
-     * @param bool $ForceSignaling
-     * false =  use configuration,
-     * true =   always set color and brightness
-     *
-     * @return bool
-     * false =  an error occurred,
-     * true =   successful
-     *
-     * @throws Exception
-     */
-    public function SetDeviceSignaling(int $LightUnit, int $Color, int $Brightness, bool $ForceSignaling = false): bool
-    {
-        $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
-        $this->SendDebug(__FUNCTION__, 'Farbe: ' . $Color, 0);
-        $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $Brightness, 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
-        if ($this->CheckMaintenance()) {
-            return false;
-        }
-        $result = true;
-        $color = $this->SetColor($LightUnit, $Color, $ForceSignaling);
-        $brightness = $this->SetBrightness($LightUnit, $Brightness, $ForceSignaling);
-        if (!$color || !$brightness) {
-            $result = false;
-        }
-        return $result;
-    }
-
-    /**
-     * Updates the light units.
-     *
-     * @param bool $ForceSignaling
-     * false =  use configuration,
-     * true =   force signaling
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function UpdateLightUnits(bool $ForceSignaling): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
-        if ($this->CheckMaintenance()) {
-            return;
-        }
-        //Upper light unit
-        if ($this->ValidateTriggerList(0)) {
-            $this->UpdateUpperLightUnit($ForceSignaling);
-        } else {
-            $this->UpdateColorFromDeviceColor(0);
-            $this->UpdateBrightnessFromDeviceLevel(0);
-        }
-        //Lower light unit
-        if ($this->ValidateTriggerList(1)) {
-            $this->UpdateLowerLightUnit($ForceSignaling);
-        } else {
-            $this->UpdateColorFromDeviceColor(1);
-            $this->UpdateBrightnessFromDeviceLevel(1);
-        }
-
-        //Set automatic status update timer
-        $milliseconds = 0;
-        if ($this->ReadPropertyBoolean('AutomaticStatusUpdate')) {
-            $milliseconds = $this->ReadPropertyInteger('CheckStatusInterval') * 1000;
-        }
-        $this->SetTimerInterval('CheckStatus', $milliseconds);
-    }
-
-    /**
-     * Updates the color from the actual device color.
-     *
-     * @param int $LightUnit
-     * 0 =  Upper light unit,
-     * 1 =  Lower light unit
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function UpdateColorFromDeviceColor(int $LightUnit): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
-        $deviceColorName = 'UpperLightUnitDeviceColor';
-        $lightUnitColor = 'UpperLightUnitColor';
-        if ($LightUnit == 1) {
-            $deviceColorName = 'LowerLightUnitDeviceColor';
-            $lightUnitColor = 'LowerLightUnitColor';
-        }
-        $id = $this->ReadPropertyInteger($deviceColorName);
-        if ($id > 1 && @IPS_ObjectExists($id)) {
-            $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
-            $color = GetValueInteger($id);
-            $this->SendDebug(__FUNCTION__, 'Farbe: ' . $color, 0);
-            $actualColor = $this->GetValue($lightUnitColor);
-            //Set values, changes only
-            if ($actualColor != $color) {
-                $this->SetValue($lightUnitColor, $color);
-            }
-        }
-    }
-
-    /**
-     * Updates the brightness from the actual device level.
-     *
-     * @param int $LightUnit
-     * 0 =  Upper light unit,
-     * 1 =  Lower light unit
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function UpdateBrightnessFromDeviceLevel(int $LightUnit): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
-        $deviceBrightnessName = 'UpperLightUnitDeviceBrightness';
-        $lightUnitBrightness = 'UpperLightUnitBrightness';
-        if ($LightUnit == 1) {
-            $deviceBrightnessName = 'LowerLightUnitDeviceBrightness';
-            $lightUnitBrightness = 'LowerLightUnitBrightness';
-        }
-        $id = $this->ReadPropertyInteger($deviceBrightnessName);
-        if ($id > 1 && @IPS_ObjectExists($id)) {
-            $this->SendDebug(__FUNCTION__, 'Variable ID: ' . $id, 0);
-            $brightness = GetValueFloat($id) * 100;
-            $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $brightness, 0);
-            $actualBrightness = $this->GetValue($lightUnitBrightness);
-            //Set values, changes only
-            if ($actualBrightness != $brightness) {
-                $this->SetValue($lightUnitBrightness, $brightness);
-            }
-        }
-    }
-
-    /**
-     * Updates the color and the brightness for the upper light unit from trigger list.
-     *
-     * @param bool $ForceSignaling
-     * false =  use configuration,
-     * true =   always set color and brightness
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function UpdateUpperLightUnit(bool $ForceSignaling): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
-        if ($this->CheckMaintenance()) {
-            return;
-        }
-        $this->CheckTriggerConditions(0, $ForceSignaling);
-    }
-
-    /**
-     * Updates the color and the brightness for the lower light unit from trigger list.
-     *
-     * @param bool $ForceSignaling
-     *  false =  use configuration,
-     *  true =   always set color and brightness
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function UpdateLowerLightUnit(bool $ForceSignaling): void
-    {
-        $this->SendDebug(__FUNCTION__, 'wird ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceSignaling), 0);
-        if ($this->CheckMaintenance()) {
-            return;
-        }
-        $this->CheckTriggerConditions(1, $ForceSignaling);
-    }
-
-    #################### Private
-
-    /**
-     * Sets the device color of a light unit.
-     *
-     * @param int $LightUnit
-     * 0 =  Upper light unit,
-     * 1 =  Lower light unit
-     *
-     * @param int $Color
-     * 0 =  black / off,
-     * 1 =  blue,
-     * 2 =  green,
-     * 3 =  turquoise,
-     * 4 =  red,
-     * 5 =  violet,
-     * 6 =  yellow,
-     * 7 =  white,
+     * 7 =  white
      *
      * @param bool $ForceColor
      * false =  use configuration,
-     * true =   always set color
+     * true =   always set color on device
      *
      * @return bool
      * false =  an error occurred
@@ -239,121 +45,98 @@ trait SAHMIP_Signaling
      *
      * @throws Exception
      */
-    private function SetColor(int $LightUnit, int $Color, bool $ForceColor = false): bool
+    public function SetColor(int $LightUnit, int $Color, bool $ForceColor = false): bool
     {
-        $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
-        $this->SendDebug(__FUNCTION__, 'Farbe: ' . $Color, 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceColor), 0);
+        if ($this->CheckMaintenance()) {
+            return false;
+        }
+
         $result = false;
-        //Upper light unit
-        if ($LightUnit == 0) {
-            $actualColor = $this->GetValue('UpperLightUnitColor');
-            //Set values, changes only
-            if ($actualColor != $Color) {
-                $this->SetValue('UpperLightUnitColor', $Color);
-            }
-            if (!$ForceColor) {
-                if ($actualColor == $Color) {
-                    $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                    return true;
-                }
-            }
-            $id = $this->ReadPropertyInteger('UpperLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) {
-                switch ($this->ReadPropertyInteger('UpperLightUnitDeviceType')) {
-                    case 1: //HmIP-BSL Channel 8
-                    case 2: //HmIP-MP3P Channel 6
-                        $commandControl = $this->ReadPropertyInteger('CommandControl');
-                        if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                            $commands = [];
-                            $commands[] = '@HM_WriteValueInteger(' . $id . ", 'COLOR', '" . $Color . "');";
-                            $this->SendDebug(__FUNCTION__, 'Befehle: ' . json_encode(json_encode($commands)), 0);
-                            $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
-                            $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
-                            $result = @IPS_RunScriptText($scriptText);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueInteger(' . $id . ", 'COLOR', " . $Color . ');', 0);
-                            IPS_Sleep($this->ReadPropertyInteger('UpperLightUnitSwitchingDelay'));
-                            $result = @HM_WriteValueInteger($id, 'COLOR', $Color);
-                            if (!$result) {
-                                IPS_Sleep($this->ReadPropertyInteger('UpperLightUnitSwitchingDelay'));
-                                $result = @HM_WriteValueInteger($id, 'COLOR', $Color);
-                            }
-                        }
-                        if ($result) {
-                            $this->SendDebug(__FUNCTION__, 'Der Farbwert ' . $Color . ' wurde für die obere Leuchteinheit ID ' . $id . ' eingestellt.', 0);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, der Farbwert ' . $Color . ' konnte für die obere Leuchteinheit ID ' . $id . ' nicht eingestellt werden!', 0);
-                            //Revert color
-                            $this->SetValue('UpperLightUnitColor', $actualColor);
-                        }
-                        break;
 
-                }
-            }
-        }
-        //Lower light unit
+        $unit = 'UpperLightUnit';
+        $lightUnitDescription = 'obere Leuchteinheit';
         if ($LightUnit == 1) {
-            $actualColor = $this->GetValue('LowerLightUnitColor');
-            //Set values, changes only
-            if ($actualColor != $Color) {
-                $this->SetValue('LowerLightUnitColor', $Color);
-            }
-            if (!$ForceColor) {
-                if ($actualColor == $Color) {
-                    $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert angezeigt!', 0);
-                    return true;
-                }
-            }
-            $id = $this->ReadPropertyInteger('LowerLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) {
-                switch ($this->ReadPropertyInteger('LowerLightUnitDeviceType')) {
-                    case 1: //HmIP-BSL Channel 12
-                        $commandControl = $this->ReadPropertyInteger('CommandControl');
-                        if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                            $commands = [];
-                            $commands[] = '@HM_WriteValueInteger(' . $id . ", 'COLOR', '" . $Color . "');";
-                            $this->SendDebug(__FUNCTION__, 'Befehle: ' . json_encode(json_encode($commands)), 0);
-                            $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
-                            $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
-                            $result = @IPS_RunScriptText($scriptText);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueInteger(' . $id . ", 'COLOR', " . $Color . ');', 0);
-                            IPS_Sleep($this->ReadPropertyInteger('LowerLightUnitSwitchingDelay'));
-                            $result = @HM_WriteValueInteger($id, 'COLOR', $Color);
-                            if (!$result) {
-                                IPS_Sleep($this->ReadPropertyInteger('LowerLightUnitSwitchingDelay'));
-                                $result = @HM_WriteValueInteger($id, 'LEVEL', $Color);
-                            }
-                        }
-                        if ($result) {
-                            $this->SendDebug(__FUNCTION__, 'Der Farbwert ' . $Color . ' wurde für die untere Leuchteinheit ID ' . $id . ' eingestellt.', 0);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, der Farbwert ' . $Color . ' konnte für die untere Leuchteinheit ID ' . $id . ' nicht eingestellt werden!', 0);
-                            //Revert color
-                            $this->SetValue('LowerLightUnitBrightness', $actualColor);
-                        }
-                        break;
+            $unit = 'LowerLightUnit';
+            $lightUnitDescription = 'untere Leuchteinheit';
+        }
 
-                }
+        //Check device variable
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColor');
+        if ($id <= 1 || @!IPS_ObjectExists($id)) {
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'Einheit: ' . $LightUnit . ' = ' . $lightUnitDescription . ', Farbe: ' . $Color . ', Forcieren: ' . $ForceColor, 0);
+
+        $actualColor = $this->GetValue($unit . 'Color');
+
+        //Set value
+        $this->SetValue($unit . 'Color', $Color);
+        //Verify device color
+        if ($actualColor == $Color) {
+            //Verify device color
+            $verifyColor = $this->VerifyDeviceColor($LightUnit, $Color);
+            if (!$verifyColor) {
+                $ForceColor = true;
             }
         }
+
+        if (!$ForceColor) {
+            if ($actualColor == $Color) {
+                $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Farbwert verwendet!', 0);
+                return true;
+            }
+        } else {
+            $this->SendDebug(__FUNCTION__, 'Die Gerätesignalisierung wird erzwungen!', 0);
+        }
+
+        //Set color on device
+        $id = $this->ReadPropertyInteger($unit);
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            switch ($this->ReadPropertyInteger($unit . 'DeviceType')) {
+                case 1: //HmIP-BSL Channel 8
+                case 2: //HmIP-MP3P Channel 6
+                    $commandControl = $this->ReadPropertyInteger('CommandControl');
+                    if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                        $commands = [];
+                        $commands[] = '@HM_WriteValueInteger(' . $id . ", 'COLOR', '" . $Color . "');";
+                        $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
+                        $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
+                        $result = @IPS_RunScriptText($scriptText);
+                    } else {
+                        IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                        $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueInteger(' . $id . ", 'COLOR', " . $Color . ');', 0);
+                        $result = @HM_WriteValueInteger($id, 'COLOR', $Color);
+                        if (!$result) {
+                            IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                            $result = @HM_WriteValueInteger($id, 'COLOR', $Color);
+                        }
+                    }
+                    if ($result) {
+                        $this->SendDebug(__FUNCTION__, 'Der Farbwert ' . $Color . ' wurde für die ' . $lightUnitDescription . ' (ID ' . $id . ') eingestellt.', 0);
+                    } else {
+                        $this->SendDebug(__FUNCTION__, 'Abbruch, der Farbwert ' . $Color . ' konnte für die ' . $lightUnitDescription . ' (ID ' . $id . ') nicht eingestellt werden!', 0);
+                    }
+                    break;
+
+            }
+        }
+
         return $result;
     }
 
     /**
-     * Sets the device brightness of a light unit.
+     * Sets the brightness.
      *
      * @param int $LightUnit
-     * 0 =  Upper light unit,
-     * 1 =  Lower light unit
+     * 0 =  upper light unit,
+     * 1 =  lower light unit
      *
      * @param int $Brightness
      *
      * @param bool $ForceBrightness
      * false =  use configuration,
-     * true =   always set color
+     * true =   always set brightness on device
      *
      * @return bool
      * false =  an error occurred
@@ -361,106 +144,547 @@ trait SAHMIP_Signaling
      *
      * @throws Exception
      */
-    private function SetBrightness(int $LightUnit, int $Brightness, bool $ForceBrightness = false): bool
+    public function SetBrightness(int $LightUnit, int $Brightness, bool $ForceBrightness = false): bool
     {
-        $this->SendDebug(__FUNCTION__, 'wird  ausgeführt', 0);
-        $this->SendDebug(__FUNCTION__, 'Leuchteinheit: ' . $LightUnit, 0);
-        $this->SendDebug(__FUNCTION__, 'Helligkeit: ' . $Brightness, 0);
-        $this->SendDebug(__FUNCTION__, 'Forcieren: ' . json_encode($ForceBrightness), 0);
+        if ($this->CheckMaintenance()) {
+            return false;
+        }
+
         $result = false;
-        //Upper light unit
-        if ($LightUnit == 0) {
-            $actualBrightness = $this->GetValue('UpperLightUnitBrightness');
-            //Set values, changes only
-            if ($actualBrightness != $Brightness) {
-                $this->SetValue('UpperLightUnitBrightness', $Brightness);
-            }
-            if (!$ForceBrightness) {
-                if ($actualBrightness == $Brightness) {
-                    $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                    return true;
-                }
-            }
-            $deviceBrightness = $this->GetValue('UpperLightUnitBrightness') / 100;
-            $id = $this->ReadPropertyInteger('UpperLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) {
-                switch ($this->ReadPropertyInteger('UpperLightUnitDeviceType')) {
-                    case 1: //HmIP-BSL Channel 8
-                    case 2: //HmIP-MP3P Channel 6
-                        $commandControl = $this->ReadPropertyInteger('CommandControl');
-                        if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                            $commands = [];
-                            $commands[] = '@HM_WriteValueFloat(' . $id . ", 'LEVEL', '" . $deviceBrightness . "');";
-                            $this->SendDebug(__FUNCTION__, 'Befehle: ' . json_encode(json_encode($commands)), 0);
-                            $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
-                            $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
-                            $result = @IPS_RunScriptText($scriptText);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueFloat(' . $id . ", 'LEVEL', " . $deviceBrightness . ');', 0);
-                            IPS_Sleep($this->ReadPropertyInteger('UpperLightUnitSwitchingDelay'));
-                            $result = @HM_WriteValueFloat($id, 'LEVEL', $deviceBrightness);
-                            if (!$result) {
-                                IPS_Sleep($this->ReadPropertyInteger('UpperLightUnitSwitchingDelay'));
-                                $result = @HM_WriteValueFloat($id, 'LEVEL', $deviceBrightness);
-                            }
-                        }
-                        if ($result) {
-                            $this->SendDebug(__FUNCTION__, 'Der Helligkeitswert ' . $deviceBrightness . ' wurde für die obere Leuchteinheit ID ' . $id . ' eingestellt.', 0);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, der Helligkeitswert ' . $deviceBrightness . ' konnte für die obere Leuchteinheit ID ' . $id . ' nicht eingestellt werden!', 0);
-                            //Revert brightness
-                            $this->SetValue('UpperLightUnitBrightness', $actualBrightness);
-                        }
-                        break;
-                }
-            }
-        }
-        //Lower light unit
+
+        $unit = 'UpperLightUnit';
+        $lightUnitDescription = 'obere Leuchteinheit';
         if ($LightUnit == 1) {
-            $actualBrightness = $this->GetValue('LowerLightUnitBrightness');
-            //Set values, changes only
-            if ($actualBrightness != $Brightness) {
-                $this->SetValue('LowerLightUnitBrightness', $Brightness);
-            }
-            if (!$ForceBrightness) {
-                if ($actualBrightness == $Brightness) {
-                    $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
-                    return true;
-                }
-            }
-            $deviceBrightness = $this->GetValue('LowerLightUnitBrightness') / 100;
-            $id = $this->ReadPropertyInteger('LowerLightUnit');
-            if ($id > 1 && @IPS_ObjectExists($id)) {
-                switch ($this->ReadPropertyInteger('LowerLightUnitDeviceType')) {
-                    case 1: //HmIP-BSL Channel 12
-                        $commandControl = $this->ReadPropertyInteger('CommandControl');
-                        if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
-                            $commands = [];
-                            $commands[] = '@HM_WriteValueFloat(' . $id . ", 'LEVEL', '" . $deviceBrightness . "');";
-                            $this->SendDebug(__FUNCTION__, 'Befehle: ' . json_encode(json_encode($commands)), 0);
-                            $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
-                            $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
-                            $result = @IPS_RunScriptText($scriptText);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueFloat(' . $id . ", 'LEVEL', " . $deviceBrightness . ');', 0);
-                            IPS_Sleep($this->ReadPropertyInteger('LowerLightUnitSwitchingDelay'));
-                            $result = @HM_WriteValueFloat($id, 'LEVEL', $deviceBrightness);
-                            if (!$result) {
-                                IPS_Sleep($this->ReadPropertyInteger('LowerLightUnitSwitchingDelay'));
-                                $result = @HM_WriteValueFloat($id, 'LEVEL', $deviceBrightness);
-                            }
-                        }
-                        if ($result) {
-                            $this->SendDebug(__FUNCTION__, 'Der Helligkeitswert ' . $deviceBrightness . ' wurde für die untere Leuchteinheit ID ' . $id . ' eingestellt.', 0);
-                        } else {
-                            $this->SendDebug(__FUNCTION__, 'Abbruch, der Helligkeitswert ' . $deviceBrightness . ' konnte für die untere Leuchteinheit ID ' . $id . ' nicht eingestellt werden!', 0);
-                            //Revert brightness
-                            $this->SetValue('LowerLightUnitBrightness', $actualBrightness);
-                        }
-                        break;
-                }
+            $unit = 'LowerLightUnit';
+            $lightUnitDescription = 'untere Leuchteinheit';
+        }
+
+        //Check device variable
+        $id = $this->ReadPropertyInteger($unit . 'DeviceBrightness');
+        if ($id <= 1 || @!IPS_ObjectExists($id)) {
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'Einheit: ' . $LightUnit . ' = ' . $lightUnitDescription . ', Helligkeit: ' . $Brightness . ', Forcieren: ' . $ForceBrightness, 0);
+
+        $actualBrightness = $this->GetValue($unit . 'Brightness');
+
+        //Set value
+        $this->SetValue($unit . 'Brightness', $Brightness);
+        //Verify device brightness
+        if ($actualBrightness == $Brightness) {
+            $verifiyBrightness = $this->VerifyDeviceBrightness($LightUnit, $Brightness);
+            if (!$verifiyBrightness) {
+                $ForceBrightness = true;
             }
         }
+
+        if (!$ForceBrightness) {
+            if ($actualBrightness == $Brightness) {
+                $this->SendDebug(__FUNCTION__, 'Es wird bereits die gleiche Helligkeit verwendet!', 0);
+                return true;
+            }
+        } else {
+            $this->SendDebug(__FUNCTION__, 'Die Gerätesignalisierung wird erzwungen!', 0);
+        }
+
+        //Set brightness on device
+        $id = $this->ReadPropertyInteger($unit);
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            switch ($this->ReadPropertyInteger($unit . 'DeviceType')) {
+                case 1: //HmIP-BSL Channel 8
+                case 2: //HmIP-MP3P Channel 6
+                    $commandControl = $this->ReadPropertyInteger('CommandControl');
+                    if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                        $commands = [];
+                        $commands[] = '@HM_WriteValueFloat(' . $id . ", 'LEVEL', '" . $Brightness / 100 . "');";
+                        $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
+                        $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
+                        $result = @IPS_RunScriptText($scriptText);
+                    } else {
+                        IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                        $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueFloat(' . $id . ", 'LEVEL', " . $Brightness / 100 . ');', 0);
+                        $result = @HM_WriteValueFloat($id, 'LEVEL', $Brightness / 100);
+                        if (!$result) {
+                            IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                            $result = @HM_WriteValueFloat($id, 'LEVEL', $Brightness / 100);
+                        }
+                    }
+                    if ($result) {
+                        $this->SendDebug(__FUNCTION__, 'Die Helligkeit ' . $Brightness . ' wurde für die ' . $lightUnitDescription . ' (ID ' . $id . ') eingestellt.', 0);
+                    } else {
+                        $this->SendDebug(__FUNCTION__, 'Abbruch, die Helligkeit ' . $Brightness . ' konnte für die ' . $lightUnitDescription . ' (ID ' . $id . ') nicht eingestellt werden!', 0);
+                    }
+                    break;
+
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Sets the mode.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower light unit
+     *
+     * @param int $Mode
+     * 0 =  off,
+     * 1 =  on
+     * 2 =  blinking slow,
+     * 3 =  blinking middle,
+     * 4 =  blinking fast,
+     * 5 =  flash slow,
+     * 6 =  flash middle,
+     * 7 =  flash fast,
+     * 8 =  billow slow,
+     * 9 =  billow middle
+     * 10 = billow falst
+     * 11 = old value,
+     * 12 = do not care
+     *
+     * @param bool $ForceMode
+     * false =  use configuration,
+     * true =   always set mode on device
+     *
+     * @return bool
+     * false =  an error occurred
+     * true =   successful
+     *
+     * @throws Exception
+     */
+    public function SetMode(int $LightUnit, int $Mode, bool $ForceMode = false): bool
+    {
+        if ($this->CheckMaintenance()) {
+            return false;
+        }
+
+        $result = false;
+
+        $unit = 'UpperLightUnit';
+        $lightUnitDescription = 'obere Leuchteinheit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+            $lightUnitDescription = 'untere Leuchteinheit';
+        }
+
+        //Check device variable
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColorBehaviour');
+        if ($id <= 1 || @!IPS_ObjectExists($id)) {
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'Einheit: ' . $LightUnit . ' = ' . $lightUnitDescription . ', Modus: ' . $Mode . ', Forcieren: ' . $ForceMode, 0);
+
+        $actualMode = $this->GetValue($unit . 'Mode');
+
+        //Set value
+        $this->SetValue($unit . 'Mode', $Mode);
+        //Verify device mode
+        if ($actualMode == $Mode) {
+            $verifyMode = $this->VerifyDeviceMode($LightUnit, $Mode);
+            if (!$verifyMode) {
+                $ForceMode = true;
+            }
+        }
+
+        if (!$ForceMode) {
+            if ($actualMode == $Mode) {
+                $this->SendDebug(__FUNCTION__, 'Es wird bereits der gleiche Modus verwendet!', 0);
+                return true;
+            }
+        } else {
+            $this->SendDebug(__FUNCTION__, 'Die Gerätesignalisierung wird erzwungen!', 0);
+        }
+
+        //Set mode on device
+        $id = $this->ReadPropertyInteger($unit);
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            switch ($this->ReadPropertyInteger($unit . 'DeviceType')) {
+                case 1: //HmIP-BSL Channel 8
+                case 2: //HmIP-MP3P Channel 6
+                    $commandControl = $this->ReadPropertyInteger('CommandControl');
+                    if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                        $commands = [];
+                        $commands[] = '@HM_WriteValueInteger(' . $id . ", 'COLOR_BEHAVIOUR', '" . $Mode . "');";
+                        $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
+                        $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
+                        $result = @IPS_RunScriptText($scriptText);
+                    } else {
+                        IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                        $this->SendDebug(__FUNCTION__, 'Befehl: @HM_WriteValueInteger(' . $id . ", 'COLOR_BEHAVIOUR', " . $Mode . ');', 0);
+                        $result = @HM_WriteValueInteger($id, 'COLOR_BEHAVIOUR', $Mode);
+                        if (!$result) {
+                            IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                            $result = @HM_WriteValueInteger($id, 'COLOR_BEHAVIOUR', $Mode);
+                        }
+                    }
+                    if ($result) {
+                        $this->SendDebug(__FUNCTION__, 'Der Modus ' . $Mode . ' wurde für die ' . $lightUnitDescription . ' (ID ' . $id . ') eingestellt.', 0);
+                    } else {
+                        $this->SendDebug(__FUNCTION__, 'Abbruch, der Modus ' . $Mode . ' konnte für die ' . $lightUnitDescription . ' (ID ' . $id . ') nicht eingestellt werden!', 0);
+                    }
+                    break;
+
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower light unit
+     *
+     * @param int $Color
+     * 0 =  black or off,
+     * 1 =  blue,
+     * 2 =  green,
+     * 3 =  turquoise,
+     * 4 =  red,
+     * 5 =  violet,
+     * 6 =  yellow,
+     * 7 =  white
+     *
+     * @param int $Brightness
+     *
+     * @param int $Mode
+     * 0 =  off,
+     * 1 =  on
+     * 2 =  blinking slow,
+     * 3 =  blinking middle,
+     * 4 =  blinking fast,
+     * 5 =  flash slow,
+     * 6 =  flash middle,
+     * 7 =  flash fast,
+     * 8 =  billow slow,
+     * 9 =  billow middle
+     * 10 = billow falst
+     * 11 = old value,
+     * 12 = do not care
+     *
+     * @param bool $Force
+     * false =  use configuration,
+     * true =   always set mode on device
+     *
+     * @return bool
+     * false =  an error occurred
+     * true =   successful
+     *
+     * @throws Exception
+     */
+    public function SetCombinedParameters(int $LightUnit, int $Color, int $Brightness, int $Mode, bool $Force = false): bool
+    {
+        if ($this->CheckMaintenance()) {
+            return false;
+        }
+
+        $result = false;
+
+        $unit = 'UpperLightUnit';
+        $lightUnitDescription = 'obere Leuchteinheit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+            $lightUnitDescription = 'untere Leuchteinheit';
+        }
+
+        //Check device instance
+        $id = $this->ReadPropertyInteger($unit);
+        if ($id <= 1 || @!IPS_ObjectExists($id)) {
+            return false;
+        }
+
+        //Check combined parameters
+        if (!$this->ReadPropertyBoolean($unit . 'UseCombinedParameter')) {
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'Einheit: ' . $LightUnit . ' = ' . $lightUnitDescription . ', Farbe: ' . $Color . ', Helligkeit: ' . $Brightness . ', Modus: ' . $Mode . ', Forcieren: ' . $Force, 0);
+
+        $actualColor = $this->GetValue($unit . 'Color');
+        $actualBrightness = $this->GetValue($unit . 'Brightness');
+        $actualMode = $this->GetValue($unit . 'Mode');
+
+        //Set color
+        $this->SetValue($unit . 'Color', $Color);
+        //Verify device color
+        if ($actualColor == $Color) {
+            $verifyColor = $this->VerifyDeviceColor($LightUnit, $Color);
+            if (!$verifyColor) {
+                $Force = true;
+            }
+        }
+
+        //Set brightness
+        $this->SetValue($unit . 'Brightness', $Brightness);
+        //Verify device brightness
+        if ($actualBrightness == $Brightness) {
+            $verifyMode = $this->VerifyDeviceBrightness($LightUnit, $Brightness);
+            if (!$verifyMode) {
+                $Force = true;
+            }
+        }
+
+        //Set mode
+        $this->SetValue($unit . 'Mode', $Mode);
+        //Verify device mode
+        if ($actualMode == $Mode) {
+            $verifyMode = $this->VerifyDeviceMode($LightUnit, $Mode);
+            if (!$verifyMode) {
+                $Force = true;
+            }
+        }
+
+        if (!$Force) {
+            if ($actualColor == $Color && $actualBrightness == $Brightness && $actualMode == $Mode) {
+                $this->SendDebug(__FUNCTION__, 'Es werden bereits die gleichen Werte verwendet!', 0);
+                return true;
+            }
+        } else {
+            $this->SendDebug(__FUNCTION__, 'Die Gerätesignalisierung wird erzwungen!', 0);
+        }
+
+        //Set mode on device
+        $id = $this->ReadPropertyInteger($unit);
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            switch ($this->ReadPropertyInteger($unit . 'DeviceType')) {
+                case 1: //HmIP-BSL Channel 8
+                case 2: //HmIP-MP3P Channel 6
+                    $commandControl = $this->ReadPropertyInteger('CommandControl');
+                    if ($commandControl > 1 && @IPS_ObjectExists($commandControl)) {
+                        $commands = [];
+                        //C = color, L = level, CB = color behaviour, DV = duration value, DU = duration unit, RTV = ramp time value, RTU = ramp time unit
+                        $commands[] = '@HM_WriteValueString(' . $id . ", 'COMBINED_PARAMETER', 'C=" . $Color . ',L=' . $Brightness . ',CB=' . $Mode . "');";
+                        $scriptText = self::ABLAUFSTEUERUNG_MODULE_PREFIX . '_ExecuteCommands(' . $commandControl . ', ' . json_encode(json_encode($commands)) . ');';
+                        $this->SendDebug(__FUNCTION__, 'Ablaufsteuerung: ' . $scriptText, 0);
+                        $result = @IPS_RunScriptText($scriptText);
+                    }
+                    else {
+                        IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                        $result = @HM_WriteValueString($id, 'COMBINED_PARAMETER', 'C=' . $Color . ',L=' . $Brightness . ',CB=' . $Mode);
+                        if (!$result) {
+                            IPS_Sleep($this->ReadPropertyInteger($unit . 'SwitchingDelay'));
+                            $result = @HM_WriteValueString($id, 'COMBINED_PARAMETER', 'C=' . $Color . ',L=' . $Brightness . ',CB=' . $Mode);
+                        }
+                    }
+                    if ($result) {
+                        $this->SendDebug(__FUNCTION__, 'Die kombinierten Parameter ' . $Mode . ' wurden für die ' . $lightUnitDescription . ' (ID ' . $id . ') eingestellt.', 0);
+                    } else {
+                        $this->SendDebug(__FUNCTION__, 'Abbruch, die kombinierten Parameter ' . $Mode . ' konnten für die ' . $lightUnitDescription . ' (ID ' . $id . ') nicht eingestellt werden!', 0);
+                    }
+                    break;
+
+            }
+        }
+
+        return $result;
+    }
+
+    ########## Device Updates
+
+    /**
+     * Updates the color from the device.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @return void
+     * @throws Exception
+     */
+    protected function UpdateColor(int $LightUnit): void
+    {
+        if ($this->CheckMaintenance()) {
+            return;
+        }
+
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColor');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            $actualColor = $this->GetValue($unit . 'Color');
+            $actualDeviceColor = GetValueInteger($id);
+            if ($actualDeviceColor != $actualColor) {
+                $this->SetValue($unit . 'Color', $actualDeviceColor);
+            }
+        }
+    }
+
+    /**
+     * Updates the brightness from the device.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @return void
+     * @throws Exception
+     */
+    protected function UpdateBrightness(int $LightUnit): void
+    {
+        if ($this->CheckMaintenance()) {
+            return;
+        }
+
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceBrightness');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            $actualBrightness = $this->GetValue($unit . 'Brightness');
+            $actualDeviceBrightness = GetValueFloat($id) * 100;
+            if ($actualDeviceBrightness != $actualBrightness) {
+                $this->SetValue($unit . 'Brightness', $actualDeviceBrightness);
+            }
+        }
+    }
+
+    /**
+     * Updates the mode (color behaviour) from the device.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @return void
+     * @throws Exception
+     */
+    protected function UpdateMode(int $LightUnit): void
+    {
+        if ($this->CheckMaintenance()) {
+            return;
+        }
+
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColorBehaviour');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            $actualMode = $this->GetValue($unit . 'Mode');
+            $actualDeviceMode = GetValueInteger($id);
+            if ($actualDeviceMode != $actualMode) {
+                $this->SetValue($unit . 'Mode', $actualDeviceMode);
+            }
+        }
+    }
+
+    ########## Device Verification
+
+    /**
+     * Verifies whether the device has the correct color.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @param int $Color
+     *
+     * @return bool
+     * false =  verification failed,
+     * true =   verifiation successful
+     *
+     * @throws Exception
+     */
+    private function VerifyDeviceColor(int $LightUnit, int $Color): bool
+    {
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $result = false;
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColor');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            if (GetValueInteger($id) != $Color) {
+                $this->SendDebug(__FUNCTION__, 'Die Gerätefarbe entspricht nicht der aktuellen Farbe!', 0);
+            } else {
+                $result = true;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Verifies whether the device has the correct brightness.
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @param int $Brightness
+     *
+     * @return bool
+     * false =  verification failed,
+     * true =   verification successful
+     *
+     * @throws Exception
+     */
+    private function VerifyDeviceBrightness(int $LightUnit, int $Brightness): bool
+    {
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $result = false;
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceBrightness');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            if ((GetValueFloat($id) * 100) != $Brightness) {
+                $this->SendDebug(__FUNCTION__, 'Die Gerätehelligkeit entspricht nicht der aktuellen Helligkeit!', 0);
+            } else {
+                $result = true;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Verifies whether the device has the correct mode (color behaviour).
+     *
+     * @param int $LightUnit
+     * 0 =  upper light unit,
+     * 1 =  lower ligth unit
+     *
+     * @param int $Mode
+     *
+     * @return bool
+     * false =  verification failed,
+     * true =   verification successful
+     *
+     * @throws Exception
+     */
+    private function VerifyDeviceMode(int $LightUnit, int $Mode): bool
+    {
+        $unit = 'UpperLightUnit';
+        if ($LightUnit == 1) {
+            $unit = 'LowerLightUnit';
+        }
+
+        $result = false;
+
+        $id = $this->ReadPropertyInteger($unit . 'DeviceColorBehaviour');
+        if ($id > 1 && @IPS_ObjectExists($id)) {
+            if (GetValueInteger($id) != $Mode) {
+                $this->SendDebug(__FUNCTION__, 'Der Gerätemodus entspricht nicht dem aktuellen Modus!', 0);
+            } else {
+                $result = true;
+            }
+        }
+
         return $result;
     }
 }
